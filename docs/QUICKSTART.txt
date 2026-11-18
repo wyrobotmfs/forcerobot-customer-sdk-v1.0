@@ -1,0 +1,71 @@
+ForceRobot Customer SDK v1.0 — 快速开始
+=====================================
+
+1. 环境
+-------
+- 目标机：Linux aarch64，glibc ≥ 2.33
+- 编译器：g++（C++17）
+- 真机 EtherCAT：root / sudo（或 cap_net_raw,cap_net_admin）
+- 网口名：以现场为准（常见 eth0；旧文档可能写 end1）
+
+
+2. 编译
+-------
+  mkdir build && cd build
+  cmake ..
+  cmake --build . -j
+
+生成 libforcerobot_sdk.so 与全部 ex_*；底层 .so 会复制到 build/，
+RPATH=$ORIGIN，sudo 下一般不必设 LD_LIBRARY_PATH。
+
+
+3. FakeBus（无需硬件）
+----------------------
+  ./ex_lifecycle ../config
+  ./ex_kinematics ../config 0
+  ./ex_kin_full ../config 0
+  ./ex_move_joint_fake ../config
+
+create 失败：
+  sudo rm -f /tmp/force_robot_sdk.lock
+  确认无其他 runtime_dual / ex_* 占用
+
+
+4. 真机（谨慎）
+---------------
+  1) 急停可用；无其它 EtherCAT 主站
+  2) 清锁：sudo rm -f /tmp/force_robot_sdk.lock
+  3) 只读：
+       sudo ./ex_hw_read ../config eth0
+  4) 关节运动（交互输入目标角）：
+       sudo ./ex_hw_move_joint ../config eth0
+  5) 力控（须 autozero，约 5s）：
+       sudo ./ex_hw_force ../config eth0 0
+
+应用代码流程：
+  create → set_result_callback → start → enable
+  →（力控前）autozero 并等待完成 → 运动
+  → hold/disable → stop → destroy
+
+控制台工具（可选）：
+  sudo ./tools/run_runtime_dual.sh ./config eth0
+
+
+5. 客户集成链接示例
+-------------------
+  g++ app.cpp -Iinclude -Lbuild -Lvendor/lib \
+      -lforcerobot_sdk -lforce_robot -lforce_robot_kinematics \
+      -Wl,-rpath,'$ORIGIN:$ORIGIN/../vendor/lib' -lpthread -lrt
+
+
+6. 单实例锁
+-----------
+  /tmp/force_robot_sdk.lock
+  与 runtime_dual、gravity_identify、本 SDK 应用互斥。
+
+
+7. 更多
+-------
+  能力边界：docs/CAPABILITY.txt
+  示例对照：docs/EXAMPLES_MAP.txt / docs/API_EXAMPLES.txt
+  发布说明：docs/RELEASE_NOTES_v1.0.txt

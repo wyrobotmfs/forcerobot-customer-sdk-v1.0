@@ -1,0 +1,76 @@
+ForceRobot Customer SDK v1.0 — 文件清单（对外交付）
+================================================
+交付单位：整个 forcerobot-customer-sdk-v1.0/ 目录
+请勿交付：build/、本地临时文件、未说明的调试产物
+
+
+对外 API
+  include/forcerobot_sdk.h
+  src/forcerobot_sdk.cpp
+
+构建
+  CMakeLists.txt
+  README.md
+  MANIFEST.txt
+
+文档（对外）
+  docs/QUICKSTART.txt
+  docs/CAPABILITY.txt
+  docs/EXAMPLES_MAP.txt
+  docs/API_EXAMPLES.txt
+  docs/RELEASE_NOTES_v1.0.txt
+
+文档（联调可选）
+  docs/HARDWARE_TEST_CHECKLIST.txt
+  docs/CODE_TEST.txt
+  docs/RUNTIME_COMMANDS.txt
+
+示例
+  examples/common/hw_util.hpp
+  examples/ex_lifecycle.cpp
+  examples/ex_kinematics.cpp
+  examples/ex_kin_full.cpp
+  examples/ex_move_joint_fake.cpp
+  examples/ex_hw_read.cpp
+  examples/ex_hw_joint.cpp
+  examples/ex_hw_move_joint.cpp
+  examples/ex_hw_move_tcp.cpp
+  examples/ex_hw_path.cpp
+  examples/ex_hw_path_blend.cpp
+  examples/ex_hw_tcp_path.cpp
+  examples/ex_hw_tcp_path_blend.cpp
+  examples/ex_hw_stream.cpp
+  examples/ex_hw_tcp_tool.cpp
+  examples/ex_hw_force.cpp
+  examples/ex_hw_subscribe_csv.cpp
+  examples/ex_hw_errors.cpp
+  examples/ex_hw_both.cpp
+
+底层运行库（勿与其它版本包混用）
+  vendor/include/force_robot.h
+  vendor/include/kinematics_sdk.h
+  vendor/lib/libforce_robot.so
+  vendor/lib/libforce_robot_kinematics.so
+  vendor/SHA256SUMS.vendor
+
+配置
+  config/devices.json
+  config/mdh.json
+  config/mass.json
+  config/parameter.json
+  config/calib-poses-fullcom.txt
+
+工具
+  tools/runtime_dual
+  tools/gravity_identify
+  tools/libforce_robot.so
+  tools/libforce_robot_kinematics.so
+  tools/run_runtime_dual.sh
+
+协议附录（可选）
+  EtherCAT通信协议说明V1.05.pdf
+  （驱动对象参考；清错/温度/外编等本 SDK 无对应 API）
+
+包根兼容副本（可选保留）
+  libforce_robot.so
+  libforce_robot_kinematics.so

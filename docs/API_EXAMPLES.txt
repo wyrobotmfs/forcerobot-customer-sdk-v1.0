@@ -1,0 +1,65 @@
+ForceRobot Customer SDK v1.0 — API ↔ 示例索引
+==========================================
+头文件：include/forcerobot_sdk.h
+说明：下列为对外 API 与示例对应；客户集成以头文件为准。
+
+
+版本 / 生命周期
+  frs_version                 ex_lifecycle / ex_hw_read
+  frs_create/start/stop/destroy  各示例
+  frs_is_running              （工具函数，无单独示例）
+  frs_set_result_callback     各运动示例
+
+使能 / 标定
+  frs_enable/disable/hold     各 hw_*
+  frs_autozero                ex_hw_force
+
+工具 / 负载
+  frs_set_tcp/clear_tcp/get_tcp   ex_hw_tcp_tool
+  frs_set_payload/get_payload     ex_hw_tcp_tool
+
+CSP 位置运动
+  frs_move_joint              ex_hw_move_joint / ex_hw_joint / ex_hw_both
+  frs_move_tcp                ex_hw_move_tcp
+  frs_move_tool               ex_hw_tcp_tool
+
+多点路径
+  frs_joint_path              ex_hw_path
+  frs_tcp_path                ex_hw_tcp_path
+  frs_joint_path_blend        ex_hw_path_blend
+  frs_tcp_path_blend          ex_hw_tcp_path_blend
+
+流式跟随
+  frs_start_joint_stream      ex_hw_stream (joint)
+  frs_stream_update_joint     ex_hw_stream (joint)
+  frs_start_tcp_stream        ex_hw_stream (tcp)
+  frs_stream_update_tcp       ex_hw_stream (tcp)
+  frs_finish_stream           ex_hw_stream
+
+力控 / 阻抗 CST
+  frs_start_drag / spring     ex_hw_force
+  frs_move_impedance_joint    ex_hw_force
+  frs_move_impedance_tcp      ex_hw_force
+  frs_set/get_cst_gains       ex_hw_force
+
+状态 / 诊断 / CSV
+  frs_get_state               ex_hw_read / subscribe
+  frs_subscribe/unsubscribe   ex_hw_subscribe_csv
+  frs_refresh/get_drive_errors ex_hw_errors
+  frs_csv_start/stop/get_path ex_hw_subscribe_csv
+
+离线运动学
+  frs_kin_* / frs_traj_*      ex_kin_full / ex_kinematics
+
+
+真机常用命令（网口按现场改）
+  sudo ./ex_hw_read ../config eth0
+  sudo ./ex_hw_move_joint ../config eth0
+  sudo ./ex_hw_move_tcp ../config eth0 0 0 0 0.01
+  sudo ./ex_hw_stream ../config eth0 0 joint
+  sudo ./ex_hw_stream ../config eth0 0 tcp
+  sudo ./ex_hw_force ../config eth0 0
+
+create 失败时：
+  sudo rm -f /tmp/force_robot_sdk.lock
+  确认无 runtime_dual / 其他 ex_* 占用

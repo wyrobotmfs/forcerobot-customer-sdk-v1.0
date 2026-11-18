@@ -1,0 +1,644 @@
+{
+  "arms": [
+    {
+      "joints": [
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -90.0,
+            "soft_max_deg": 90.0,
+            "cartesian_force_min_deg": -90.0,
+            "cartesian_force_max_deg": 90.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": 0.0,
+            "soft_max_deg": 130.0,
+            "cartesian_force_min_deg": 30.0,
+            "cartesian_force_max_deg": 130.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -47.0,
+            "soft_max_deg": 47.0,
+            "cartesian_force_min_deg": -47.0,
+            "cartesian_force_max_deg": 47.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -47.0,
+            "soft_max_deg": 47.0,
+            "cartesian_force_min_deg": -47.0,
+            "cartesian_force_max_deg": 47.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        }
+      ],
+      "motion_limits": {
+        "joint_series": {
+          "max_velocity_deg_per_s": 60.0,
+          "max_acceleration_deg_per_s2": 1000.0
+        },
+        "tcp_series": {
+          "max_linear_velocity_m_s": 0.3,
+          "max_linear_acceleration_m_s2": 5.0
+        }
+      },
+      "strategies": {
+        "drag": {
+          "gain": [
+            2.0,
+            2.0,
+            5.0,
+            5.0,
+            10.0,
+            30.0,
+            30.0
+          ],
+          "deadband": [
+            1.5,
+            1.5,
+            1.5,
+            1.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "limit_taper_band": 2.0,
+          "lowpass_time": 100.0,
+          "joint_velocity_limit": 30.0,
+          "joint_acceleration_limit": 500.0
+        },
+        "spring": {
+          "gain": [
+            2.0,
+            2.0,
+            5.0,
+            5.0,
+            20.0,
+            30.0,
+            30.0
+          ],
+          "deadband": [
+            1.5,
+            2.0,
+            1.5,
+            2.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pull_gain": 1.0,
+          "pull_velocity_limit": 60.0,
+          "limit_taper_band": 4.0,
+          "lowpass_time": 100.0,
+          "joint_velocity_limit": 30.0,
+          "joint_acceleration_limit": 500.0
+        },
+        "null": {
+          "gain": 3.0,
+          "deadband": 1.0,
+          "max_step": 0.2,
+          "joint_velocity_limit": 30.0
+        },
+        "armangle": {
+          "max_velocity": 30.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart3": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor3": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6null": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "null_gain": 3.0,
+          "null_deadband": 1.0,
+          "null_velocity_limit": 60.0,
+          "null_min_elbow_radius": 0.03,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6null": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "null_gain": 10.0,
+          "null_deadband": 1.0,
+          "null_velocity_limit": 60.0,
+          "null_min_elbow_radius": 0.03,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6x": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6y": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6z": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6x": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6y": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6z": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        }
+      },
+      "physical_arm_id": "original-arm-0",
+      "parameter_source_arm_index": 0
+    },
+    {
+      "joints": [
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -90.0,
+            "soft_max_deg": 90.0,
+            "cartesian_force_min_deg": -90.0,
+            "cartesian_force_max_deg": 90.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": 0.0,
+            "soft_max_deg": 130.0,
+            "cartesian_force_min_deg": 30.0,
+            "cartesian_force_max_deg": 130.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -180.0,
+            "soft_max_deg": 180.0,
+            "cartesian_force_min_deg": -180.0,
+            "cartesian_force_max_deg": 180.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -47.0,
+            "soft_max_deg": 47.0,
+            "cartesian_force_min_deg": -47.0,
+            "cartesian_force_max_deg": 47.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        },
+        {
+          "limits": {
+            "soft_min_deg": -47.0,
+            "soft_max_deg": 47.0,
+            "cartesian_force_min_deg": -47.0,
+            "cartesian_force_max_deg": 47.0
+          },
+          "servo": {
+            "cst": {
+              "kp": 20.0,
+              "kd": 1.0,
+              "torque_limit_nm": 80.0,
+              "position_error_limit_deg": 8.0,
+              "velocity_limit_deg_s": 0.0
+            }
+          }
+        }
+      ],
+      "motion_limits": {
+        "joint_series": {
+          "max_velocity_deg_per_s": 60.0,
+          "max_acceleration_deg_per_s2": 1000.0
+        },
+        "tcp_series": {
+          "max_linear_velocity_m_s": 0.3,
+          "max_linear_acceleration_m_s2": 5.0
+        }
+      },
+      "strategies": {
+        "drag": {
+          "gain": [
+            2.0,
+            2.0,
+            5.0,
+            5.0,
+            10.0,
+            30.0,
+            30.0
+          ],
+          "deadband": [
+            1.5,
+            1.5,
+            1.5,
+            1.5,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "limit_taper_band": 2.0,
+          "lowpass_time": 100.0,
+          "joint_velocity_limit": 30.0,
+          "joint_acceleration_limit": 500.0
+        },
+        "spring": {
+          "gain": [
+            2.0,
+            2.0,
+            5.0,
+            5.0,
+            20.0,
+            30.0,
+            30.0
+          ],
+          "deadband": [
+            1.5,
+            2.0,
+            1.5,
+            2.0,
+            0.5,
+            0.5,
+            0.5
+          ],
+          "pull_gain": 1.0,
+          "pull_velocity_limit": 60.0,
+          "limit_taper_band": 4.0,
+          "lowpass_time": 100.0,
+          "joint_velocity_limit": 30.0,
+          "joint_acceleration_limit": 500.0
+        },
+        "null": {
+          "gain": 3.0,
+          "deadband": 1.0,
+          "max_step": 0.2,
+          "joint_velocity_limit": 30.0
+        },
+        "armangle": {
+          "max_velocity": 30.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart3": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor3": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6null": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "null_gain": 3.0,
+          "null_deadband": 1.0,
+          "null_velocity_limit": 60.0,
+          "null_min_elbow_radius": 0.03,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6null": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "null_gain": 10.0,
+          "null_deadband": 1.0,
+          "null_velocity_limit": 60.0,
+          "null_min_elbow_radius": 0.03,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6x": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6y": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "cart6z": {
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6x": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6y": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        },
+        "attractor6z": {
+          "attract_speed": 0.01,
+          "attract_tolerance": 0.002,
+          "gain": 0.0075,
+          "velocity_limit": 0.1,
+          "deadband": 5.0,
+          "lowpass_time": 100.0,
+          "acceleration_limit": 5.0,
+          "offset": 0.0,
+          "adaptive_lowpass_max_ms": 0.0,
+          "joint_velocity_limit": 30.0
+        }
+      },
+      "physical_arm_id": "original-arm-1",
+      "parameter_source_arm_index": 1
+    }
+  ],
+  "variant": "dual",
+  "config_set_id": "dual-shared-single-20261112"
+}

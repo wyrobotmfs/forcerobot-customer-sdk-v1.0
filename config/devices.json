@@ -1,0 +1,845 @@
+{
+  "device": {
+    "vendor_id": "0xE00004D8",
+    "product_code": "0x00009252",
+    "objects": {
+      "controlword": {
+        "index": "0x6040",
+        "sub": 0
+      },
+      "statusword": {
+        "index": "0x6041",
+        "sub": 0
+      },
+      "mode_of_operation": {
+        "index": "0x6060",
+        "sub": 0
+      },
+      "mode_display": {
+        "index": "0x6061",
+        "sub": 0
+      },
+      "target_position": {
+        "index": "0x607A",
+        "sub": 0
+      },
+      "target_velocity": {
+        "index": "0x60FF",
+        "sub": 0
+      },
+      "target_torque": {
+        "index": "0x6071",
+        "sub": 0
+      },
+      "position_actual": {
+        "index": "0x6064",
+        "sub": 0
+      },
+      "velocity_actual": {
+        "index": "0x606C",
+        "sub": 0
+      },
+      "torque_actual": {
+        "index": "0x6077",
+        "sub": 0
+      },
+      "current_actual": {
+        "index": "0x6078",
+        "sub": 0
+      }
+    },
+    "active_profile": "Csp",
+    "profiles": {
+      "Mit": {
+        "mode_number": "0x0B",
+        "sdo_startup": [
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1602",
+            "sub": 1,
+            "value": "0x60400010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 2,
+            "value": "0x607A0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 3,
+            "value": "0x60710010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 3,
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 1,
+            "value": "0x1602",
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1A02",
+            "sub": 1,
+            "value": "0x60410010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 2,
+            "value": "0x60770010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 3,
+            "value": "0x606C0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 4,
+            "value": "0x60640020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 5,
+            "value": "0x60780010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 6,
+            "value": "0x00000010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 6,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 1,
+            "value": "0x1A02",
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x6060",
+            "sub": 0,
+            "value": "0x0B",
+            "bits": 8
+          },
+          {
+            "index": "0x300A",
+            "sub": 0,
+            "value": 20,
+            "bits": 32
+          },
+          {
+            "index": "0x300B",
+            "sub": 0,
+            "value": 1,
+            "bits": 32
+          }
+        ],
+        "syncs": [
+          {
+            "index": "0x2",
+            "direction": "output",
+            "watchdog": true,
+            "pdos": [
+              {
+                "index": "0x1602",
+                "entries": [
+                  {
+                    "index": "0x6040",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x607A",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6071",
+                    "sub": 0,
+                    "bits": 16
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "index": "0x3",
+            "direction": "input",
+            "watchdog": false,
+            "pdos": [
+              {
+                "index": "0x1A02",
+                "entries": [
+                  {
+                    "index": "0x6041",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x6077",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x606C",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6064",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6078",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x0000",
+                    "sub": 0,
+                    "bits": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Csp": {
+        "mode_number": "0x08",
+        "sdo_startup": [
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1602",
+            "sub": 1,
+            "value": "0x60400010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 2,
+            "value": "0x607A0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 3,
+            "value": "0x00000010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 3,
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 1,
+            "value": "0x1602",
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1A02",
+            "sub": 1,
+            "value": "0x60410010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 2,
+            "value": "0x60640020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 3,
+            "value": "0x60770010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 4,
+            "value": "0x606C0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 5,
+            "value": "0x60780010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 6,
+            "value": "0x00000010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 6,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 1,
+            "value": "0x1A02",
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x6060",
+            "sub": 0,
+            "value": "0x08",
+            "bits": 8
+          },
+          {
+            "index": "0x200A",
+            "sub": 0,
+            "value": 100,
+            "bits": 32
+          },
+          {
+            "index": "0x200B",
+            "sub": 0,
+            "value": 0,
+            "bits": 32
+          }
+        ],
+        "syncs": [
+          {
+            "index": "0x2",
+            "direction": "output",
+            "watchdog": true,
+            "pdos": [
+              {
+                "index": "0x1602",
+                "entries": [
+                  {
+                    "index": "0x6040",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x607A",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x0000",
+                    "sub": 0,
+                    "bits": 16
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "index": "0x3",
+            "direction": "input",
+            "watchdog": false,
+            "pdos": [
+              {
+                "index": "0x1A02",
+                "entries": [
+                  {
+                    "index": "0x6041",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x6064",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6077",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x606C",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6078",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x0000",
+                    "sub": 0,
+                    "bits": 16
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "Cst": {
+        "mode_number": "0x0A",
+        "sdo_startup": [
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1602",
+            "sub": 1,
+            "value": "0x60400010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 2,
+            "value": "0x607A0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 3,
+            "value": "0x60710010",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
+            "sub": 0,
+            "value": 3,
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 1,
+            "value": "0x1602",
+            "bits": 16
+          },
+          {
+            "index": "0x1C12",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 0,
+            "bits": 8
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 0,
+            "bits": 16
+          },
+          {
+            "index": "0x1A02",
+            "sub": 1,
+            "value": "0x60410010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 2,
+            "value": "0x60640020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 3,
+            "value": "0x60770010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 4,
+            "value": "0x606C0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 5,
+            "value": "0x60780010",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 6,
+            "value": "0x60610008",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 7,
+            "value": "0x00000008",
+            "bits": 32
+          },
+          {
+            "index": "0x1A02",
+            "sub": 0,
+            "value": 7,
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 1,
+            "value": "0x1A02",
+            "bits": 16
+          },
+          {
+            "index": "0x1C13",
+            "sub": 0,
+            "value": 1,
+            "bits": 16
+          },
+          {
+            "index": "0x6060",
+            "sub": 0,
+            "value": "0x0A",
+            "bits": 8
+          }
+        ],
+        "syncs": [
+          {
+            "index": "0x2",
+            "direction": "output",
+            "watchdog": true,
+            "pdos": [
+              {
+                "index": "0x1602",
+                "entries": [
+                  {
+                    "index": "0x6040",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x607A",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6071",
+                    "sub": 0,
+                    "bits": 16
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "index": "0x3",
+            "direction": "input",
+            "watchdog": false,
+            "pdos": [
+              {
+                "index": "0x1A02",
+                "entries": [
+                  {
+                    "index": "0x6041",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x6064",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6077",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x606C",
+                    "sub": 0,
+                    "bits": 32
+                  },
+                  {
+                    "index": "0x6078",
+                    "sub": 0,
+                    "bits": 16
+                  },
+                  {
+                    "index": "0x6061",
+                    "sub": 0,
+                    "bits": 8
+                  },
+                  {
+                    "index": "0x0000",
+                    "sub": 0,
+                    "bits": 8
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "arms": [
+    {
+      "joints": [
+        {
+          "bus_position": 2
+        },
+        {
+          "bus_position": 3
+        },
+        {
+          "bus_position": 4
+        },
+        {
+          "bus_position": 5
+        },
+        {
+          "bus_position": 6
+        },
+        {
+          "bus_position": 7
+        },
+        {
+          "bus_position": 8
+        }
+      ],
+      "conversion": {
+        "joints": [
+          {
+            "cpr": 7864320.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 7864320.0,
+            "encoder_sign": -1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": 1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": -1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": 1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": -1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": 1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": -1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": 1
+          }
+        ]
+      },
+      "physical_arm_id": "original-arm-0",
+      "parameter_source_arm_index": 0
+    },
+    {
+      "joints": [
+        {
+          "bus_position": 9
+        },
+        {
+          "bus_position": 10
+        },
+        {
+          "bus_position": 11
+        },
+        {
+          "bus_position": 12
+        },
+        {
+          "bus_position": 13
+        },
+        {
+          "bus_position": 14
+        },
+        {
+          "bus_position": 15
+        }
+      ],
+      "conversion": {
+        "joints": [
+          {
+            "cpr": 7864320.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 7864320.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": 1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": -1
+          },
+          {
+            "cpr": 6553600.0,
+            "encoder_sign": -1,
+            "torque_scale_nm_per_lsb_read": 0.01,
+            "torque_scale_nm_per_lsb_write": 0.01,
+            "torque_sign": 1
+          }
+        ]
+      },
+      "physical_arm_id": "original-arm-1",
+      "parameter_source_arm_index": 1
+    }
+  ],
+  "cycle_hz": 500,
+  "torque_filter_ms": 140,
+  "torque_filter_type": "ellip",
+  "variant": "dual",
+  "config_set_id": "dual-shared-single-20261112"
+}

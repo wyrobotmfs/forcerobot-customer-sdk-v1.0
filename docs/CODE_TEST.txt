@@ -1,0 +1,68 @@
+用 C++ SDK 真机测试（控制台命令已通过后）
+========================================
+
+0. 先退出 runtime_dual
+----------------------
+  控制台输入 quit
+  sudo rm -f /tmp/force_robot_sdk.lock
+  # SDK 程序与 runtime_dual 不能同时占总线
+
+1. 在 RK3588 上编译
+-------------------
+  cd ~/forcerobot-customer-sdk-v1.0
+  # 确保 tools/ 或 vendor/lib 有 .so
+  mkdir -p build && cd build
+  cmake ..
+  cmake --build . -j
+
+  生成：
+    libforcerobot_sdk.so
+    ex_lifecycle / ex_kinematics / ex_move_joint_fake
+    ex_hw_read / ex_hw_joint
+
+2. 可选：FakeBus 先过编译链路
+----------------------------
+  cd build
+  export LD_LIBRARY_PATH="$PWD:$PWD/../vendor/lib:$PWD/../tools:${LD_LIBRARY_PATH:-}"
+  ./ex_lifecycle ../config
+  ./ex_kinematics ../config 0
+
+3. 真机只读（不使能）
+--------------------
+  cd ~/forcerobot-customer-sdk-v1.0/build
+  # 重新 cmake --build 后，.so 已打进 RPATH 并拷到 build/，可直接：
+  sudo ./ex_hw_read ../config eth0
+  # 若仍报找不到 .so，再临时：
+  #   sudo LD_LIBRARY_PATH="$PWD" ./ex_hw_read ../config eth0
+
+  验收：打印 bus_ready、两臂 measured q、tcp/payload，无报错。
+
+4. 真机低速关节增量（会动！急停在手）
+------------------------------------
+  sudo ./ex_hw_joint ../config eth0 0 5 3.0
+  参数：config  网口  臂号  关节索引0..6  角度增量
+
+5. 真机绝对关节角（单臂 / 双臂）
+-------------------------------
+  sudo ./ex_hw_move_joint ../config eth0
+  # 单臂：
+  #   0 0 0 0 30 0 0 0
+  # 双臂一起动（best-effort，非硬同步）：
+  #   both 0 0 0 30 0 0 0  0 0 0 20 0 0 0
+  #   both 0 0 0 30 0 0 0  0 0 0 20 0 0 0  10 50
+  #   q
+
+  # 命令行双臂：
+  # sudo ./ex_hw_move_joint ../config eth0 both <7角臂0> <7角臂1> [speed] [accel]
+
+6. 建议代码测试顺序
+------------------
+  [ ] ex_hw_read
+  [ ] ex_hw_joint / ex_hw_move_joint
+  [ ] 再自行加：tcp / path / autozero+drag
+
+6. 常见失败
+-----------
+  create failed → 还有 runtime_dual / 锁未清
+  找不到 .so → 检查 LD_LIBRARY_PATH
+  start failed → 网口名、权限、EtherCAT
