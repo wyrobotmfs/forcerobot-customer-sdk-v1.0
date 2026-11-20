@@ -83,14 +83,12 @@ int main() {
 - 真机前先用 FakeBus 跑通生命周期与回调
 - 单实例锁：`/tmp/force_robot_sdk.lock`（不可与 `runtime_dual` / `mass_identify` 并行抢总线）
 
-## 本版不提供（详见 CAPABILITY.txt）
-
-温度与外编专用接口、软件急停、双臂原子同步、速度百分比接口等。
-EtherCAT 协议对象 ≠ 本 SDK 已开放 API。
 
 ## 许可注意
 
 底层 EtherCAT 主站使用 **SOEM 1.4（GPLv2）**。对外再分发前请确认许可与源码提供义务。
+
+EtherCAT 协议对象 ≠ 本 SDK 已开放 API。
 
 ## 版本
 
