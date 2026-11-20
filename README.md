@@ -12,7 +12,6 @@
 
 | 文档 | 内容 |
 |------|------|
-| [docs/RELEASE_NOTES_v1.0.txt](docs/RELEASE_NOTES_v1.0.txt) | 发布说明与检查清单 |
 | [docs/QUICKSTART.txt](docs/QUICKSTART.txt) | 编译 / FakeBus / 真机起步 |
 | [docs/CAPABILITY.txt](docs/CAPABILITY.txt) | **能力** |
 | [docs/EXAMPLES_MAP.txt](docs/EXAMPLES_MAP.txt) | 示例 |
