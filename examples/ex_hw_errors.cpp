@@ -2,7 +2,8 @@
  * 驱动错误码刷新与读取（需求：获取错误码）
  *   sudo ./ex_hw_errors ../config eth0 0
  *
- * 说明：hold/disable 非硬件急停；本示例只演示 603F 缓存回读。
+ * 说明：hold/disable 非硬件急停；本示例演示 603F 缓存回读。
+ * 清错请用 frs_clear_drive_errors（需可信下使能，专用回调）。
  */
 #include "hw_util.hpp"
 

@@ -1,0 +1,21 @@
+ForceRobot Customer SDK v1.0.1 — 发布说明
+=======================================
+
+对齐底层交付包：
+  forcerobot-linux-aarch64-20261120-1440-dual-tcp-null
+
+相对 v1.0.0（基于 20261119-1434）的变更：
+  1. vendor 头/库、tools、config 同步到 1440
+  2. 配置移除旧 shared.servo.cst.cartesian；补齐 tcp_null/tool_null 等策略段
+  3. 新增 frs_move_tcp_null / frs_move_tool_null
+  4. 新增 frs_clear_drive_errors（专用清错回调）
+  5. 工具名统一为 mass_identify（不再使用 gravity_identify）
+  6. 诊断结构版本改为 FR_JOINT_DIAGNOSTICS_VERSION（3）
+  7. 示例新增 ex_hw_tcp_null
+
+检查清单：
+  [ ] sha256 与 vendor/SHA256SUMS.vendor 中库/头一致
+  [ ] FakeBus：ex_lifecycle / ex_kin_full / ex_move_joint_fake
+  [ ] 真机只读：ex_hw_read
+  [ ] 真机低速：ex_hw_move_joint / ex_hw_tcp_null（确认工作空间）
+  [ ] 不可与 runtime_dual / mass_identify 并行抢总线

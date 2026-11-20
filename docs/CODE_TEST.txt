@@ -9,7 +9,7 @@
 
 1. 在 RK3588 上编译
 -------------------
-  cd ~/forcerobot-customer-sdk-v1.0
+  cd ~/forcerobot-customer-sdk-v1.0.1
   # 确保 tools/ 或 vendor/lib 有 .so
   mkdir -p build && cd build
   cmake ..
@@ -29,7 +29,7 @@
 
 3. 真机只读（不使能）
 --------------------
-  cd ~/forcerobot-customer-sdk-v1.0/build
+  cd ~/forcerobot-customer-sdk-v1.0.1/build
   # 重新 cmake --build 后，.so 已打进 RPATH 并拷到 build/，可直接：
   sudo ./ex_hw_read ../config eth0
   # 若仍报找不到 .so，再临时：

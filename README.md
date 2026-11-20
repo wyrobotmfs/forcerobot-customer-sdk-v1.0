@@ -1,6 +1,7 @@
-# ForceRobot Customer SDK v1.0
+# ForceRobot Customer SDK v1.0.1
 
 面向客户二次开发的 **C/C++ 双臂七轴力控臂 SDK**（Linux aarch64）。
+底层对齐：`forcerobot-linux-aarch64-20261120-1440-dual-tcp-null`。
 
 客户只需：
 
@@ -12,6 +13,7 @@
 
 | 文档 | 内容 |
 |------|------|
+| [docs/RELEASE_NOTES_v1.0.1.txt](docs/RELEASE_NOTES_v1.0.1.txt) | 发布说明与检查清单 |
 | [docs/QUICKSTART.txt](docs/QUICKSTART.txt) | 编译 / FakeBus / 真机起步 |
 | [docs/CAPABILITY.txt](docs/CAPABILITY.txt) | **能力** |
 | [docs/EXAMPLES_MAP.txt](docs/EXAMPLES_MAP.txt) | 示例 |
@@ -21,12 +23,12 @@
 ## 目录结构
 
 ```text
-forcerobot-customer-sdk-v1.0/
+forcerobot-customer-sdk-v1.0.1/
 ├── include/forcerobot_sdk.h     # 对外唯一头文件
 ├── src/forcerobot_sdk.cpp
 ├── vendor/                      # 底层 .so + 头（内部链接）
-├── config/                      # 双臂配置
-├── tools/                       # runtime_dual / gravity_identify
+├── config/                      # 双臂配置（含 tcp_null/tool_null）
+├── tools/                       # runtime_dual / mass_identify
 ├── examples/                    # 示例（见 docs/EXAMPLES_MAP.txt）
 ├── docs/                        # 对外与联调文档
 ├── CMakeLists.txt
@@ -50,6 +52,7 @@ cmake --build . -j
 # sudo rm -f /tmp/force_robot_sdk.lock
 # sudo ./ex_hw_read ../config eth0
 # sudo ./ex_hw_move_joint ../config eth0
+# sudo ./ex_hw_tcp_null ../config eth0 0 0 0 0.01
 ```
 
 可执行文件与 `.so` 同在 `build/`，已写 `RPATH=$ORIGIN`，一般无需再设 `LD_LIBRARY_PATH`。
@@ -75,14 +78,14 @@ int main() {
 
 ## 安全提示
 
-- `hold` / `disable` / `stop` **不能替代硬件急停**
+- `hold` / `disable` / `stop` / `clear_drive_errors` **不能替代硬件急停**
 - 使能、autozero、运动、力控会产生机械动作，须现场批准
 - 真机前先用 FakeBus 跑通生命周期与回调
-- 单实例锁：`/tmp/force_robot_sdk.lock`（不可与 `runtime_dual` 并行抢总线）
+- 单实例锁：`/tmp/force_robot_sdk.lock`（不可与 `runtime_dual` / `mass_identify` 并行抢总线）
 
 ## 本版不提供（详见 CAPABILITY.txt）
 
-驱动清错/复位、温度与外编专用接口、软件急停、双臂原子同步、速度百分比接口等。  
+温度与外编专用接口、软件急停、双臂原子同步、速度百分比接口等。
 EtherCAT 协议对象 ≠ 本 SDK 已开放 API。
 
 ## 许可注意
@@ -91,5 +94,5 @@ EtherCAT 协议对象 ≠ 本 SDK 已开放 API。
 
 ## 版本
 
-- Customer SDK：`1.0.0`（`frs_version()`）
-- 底层配置集：`dual-shared-single-20261112`
+- Customer SDK：`1.0.1`（`frs_version()`）
+- 底层交付：`20261120-1440-dual-tcp-null`

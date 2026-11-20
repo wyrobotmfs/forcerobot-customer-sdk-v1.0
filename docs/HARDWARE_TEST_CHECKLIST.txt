@@ -1,7 +1,7 @@
 ForceRobot 真机功能实测清单（按安全顺序）
 ========================================
 网口示例：enP2p33s0
-包目录：forcerobot-customer-sdk-v1.0
+包目录：forcerobot-customer-sdk-v1.0.1
 原则：一次只测一项；双手靠近急停；低速；先臂0再臂1；失败先 hold/disable。
 
 ---------------------------------------------------------------------------
@@ -10,7 +10,7 @@ ForceRobot 真机功能实测清单（按安全顺序）
 [ ] 急停可用，人员清场，臂下方无障碍
 [ ] 确认网口：ip -br link | grep enP2p33s0
 [ ] 无其它主站/程序：
-      ps aux | grep -E 'runtime_dual|gravity_identify|ex_' | grep -v grep
+      ps aux | grep -E 'runtime_dual|mass_identify|ex_' | grep -v grep
 [ ] 清锁：sudo rm -f /tmp/force_robot_sdk.lock
 [ ] 只开一个入口：要么 runtime_dual，要么你的 SDK 程序（二者不能同时）
 
@@ -21,7 +21,7 @@ ForceRobot 真机功能实测清单（按安全顺序）
 1. 阶段 A — 无运动（验证总线与状态）
 ---------------------------------------------------------------------------
 启动：
-  cd forcerobot-customer-sdk-v1.0
+  cd forcerobot-customer-sdk-v1.0.1
   # 若找不到 .so：先 cp vendor/lib/libforce_robot*.so tools/
   sudo LD_LIBRARY_PATH="$PWD/tools:$PWD/vendor/lib" ./tools/runtime_dual ./config eth0
 

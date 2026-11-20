@@ -1,14 +1,13 @@
 /**
- * 真机只读：create → start → 等 bus_ready → get_state → stop（不使能）
+ * 只读状态：create → start → get_state → stop（不使能）
  *
  * 用法：
- *   sudo ./ex_hw_read ../config eth0
+ *   ./ex_hw_read ../config fake          # FakeBus，无硬件
+ *   sudo ./ex_hw_read ../config eth0      # 真机，网口按现场改
  */
-#include "forcerobot_sdk.h"
+#include "hw_util.hpp"
 
-#include <chrono>
 #include <cstdio>
-#include <thread>
 
 static void print_arm(const frs_state& st, int arm) {
     std::printf("arm%d enabled=%d autozero=%d mode=%d strategy=%d\n",
@@ -22,41 +21,19 @@ static void print_arm(const frs_state& st, int arm) {
     std::printf("\n");
 }
 
-static int wait_bus_ready(frs_robot* robot, frs_state* st, int timeout_ms) {
-    const int step_ms = 100;
-    std::printf("waiting bus_ready (timeout %d ms)...\n", timeout_ms);
-    std::fflush(stdout);
-    for (int waited = 0; waited <= timeout_ms; waited += step_ms) {
-        if (frs_get_state(robot, st) == FRS_OK && st->bus_ready) {
-            std::printf("bus_ready=1 after %d ms, cycle=%llu\n",
-                        waited, (unsigned long long)st->cycle);
-            return FRS_OK;
-        }
-        if (waited > 0 && (waited % 1000) == 0) {
-            std::printf("  ... still waiting (%d ms), bus_ready=%d\n",
-                        waited, st->bus_ready);
-            std::fflush(stdout);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(step_ms));
-    }
-    std::fprintf(stderr, "timeout waiting bus_ready (last=%d)\n", st->bus_ready);
-    return FRS_ERR_NOT_READY;
-}
-
 int main(int argc, char** argv) {
     if (argc < 3) {
-        std::fprintf(stderr, "usage: %s <config_dir> <ifname>\n", argv[0]);
+        std::fprintf(stderr, "usage: %s <config_dir> <ifname|fake>\n", argv[0]);
         return 1;
     }
     const char* config = argv[1];
     const char* ifname = argv[2];
+    const int require_bus = !frs_is_fake(ifname);
 
     std::printf("SDK %s\n", frs_version());
 
     frs_options opt{};
-    opt.use_ethercat = 1;
-    opt.interface_name = ifname;
-    opt.log_every_cycles = 0;
+    frs_fill_options(&opt, ifname);
 
     frs_robot* robot = frs_create(config, &opt);
     if (!robot) {
@@ -70,7 +47,7 @@ int main(int argc, char** argv) {
     }
 
     frs_state st{};
-    if (wait_bus_ready(robot, &st, 15000) != FRS_OK) {
+    if (frs_wait_ready(robot, &st, 15000, require_bus) != FRS_OK) {
         frs_stop(robot);
         frs_destroy(robot);
         return 4;

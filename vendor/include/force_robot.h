@@ -27,7 +27,7 @@ extern "C" {
 #  define FR_API __attribute__((visibility("default")))
 #endif
 
-#define FR_STATE_VERSION 2u
+#define FR_STATE_VERSION 3u
 #define FR_ROBOT_MAX_ARMS 2
 #define FR_ROBOT_JOINTS 7
 
@@ -50,11 +50,11 @@ typedef enum {
     FR_MODE_HOLD = 0,
     FR_MODE_JOINT,
     FR_MODE_TCP,
-    FR_MODE_ATTRACTOR3,
+    FR_MODE_ATTRACTOR3, /**< 保留编号，不可运行。 */
     FR_MODE_ATTRACTOR6,
     FR_MODE_DRAG,
     FR_MODE_SPRING,
-    FR_MODE_CART3,
+    FR_MODE_CART3, /**< 保留编号，不可运行。 */
     FR_MODE_CART6,
     FR_MODE_NULL,
     FR_MODE_TOOL,
@@ -77,7 +77,24 @@ typedef enum {
     FR_MODE_JOINT_STREAM,
     FR_MODE_TCP_STREAM,
     FR_MODE_IMP_JOINT_STREAM,
-    FR_MODE_IMP_TCP_STREAM
+    FR_MODE_IMP_TCP_STREAM,
+    FR_MODE_IMP_CART6,
+    FR_MODE_IMP_CART6NULL,
+    FR_MODE_IMP_CART6X,
+    FR_MODE_IMP_CART6Y,
+    FR_MODE_IMP_CART6Z,
+    FR_MODE_IMP_ATTRACTOR6,
+    FR_MODE_IMP_ATTRACTOR6NULL,
+    FR_MODE_IMP_ATTRACTOR6X,
+    FR_MODE_IMP_ATTRACTOR6Y,
+    FR_MODE_IMP_ATTRACTOR6Z,
+    FR_MODE_IMP_NULL,
+    FR_MODE_HYBRID_FORCE_POSITION,
+    FR_MODE_IMP_HYBRID_FORCE_POSITION,
+    FR_MODE_CART6NULL_EXP,
+    FR_MODE_ATTRACTOR6NULL_EXP,
+    FR_MODE_TCP_NULL,
+    FR_MODE_TOOL_NULL
 } fr_mode;
 
 typedef enum {
@@ -102,7 +119,7 @@ typedef struct {
     uint32_t struct_version; /**< 填写 FR_STATE_VERSION；建议先将整个结构清零。 */
     int      use_soem; /**< 0=FakeBus；1=EtherCAT；必须显式选择。 */
     const char* interface_name; /**< EtherCAT 网口名；NULL 使用 eth0；FakeBus 时忽略。 */
-    int      log_every_cycles; /**< 日志采样间隔，单位控制拍；>0 写 log/run.txt，0关闭；默认0。 */
+    int      log_every_cycles; /**< 日志采样间隔，单位控制拍；>0 异步写log/run.txt，0关闭，默认0；实时仅有界快照入队，队满丢日志计数，不等待磁盘。 */
 } fr_options;
 
 typedef struct {
@@ -128,12 +145,12 @@ typedef struct {
     double   measured_torque_unfiltered_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴未滤波力矩，Nm。 */
     double   measured_torque_filtered_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴滤波后力矩，Nm，存在滤波延迟。 */
     double   target_torque_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴命令力矩，Nm。 */
-    double   gravity_hold_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴重力模型力矩，Nm。 */
+    double   gravity_hold_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 纯重力保持模型力矩，Nm，不含摩擦或零漂；检查gravity_hold_valid，无效时0。 */
     double   external_torque_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴外力矩估计，Nm；需有效估计链及autozero。 */
-    double   torque_drift_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴标定测量侧零漂，Nm。 */
+    double   torque_drift_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< autozero标定的测量侧零漂，Nm；检查torque_drift_valid，无效时0。 */
     double   equivalent_force_3d_n[FR_ROBOT_MAX_ARMS][3]; /**< 三维等效力估计[x,y,z]，N。 */
     double   equivalent_force_6d[FR_ROBOT_MAX_ARMS][6]; /**< 六维等效力/力矩估计[Fx,Fy,Fz,Mx,My,Mz]，N/Nm。 */
-    double   tool_pose[FR_ROBOT_MAX_ARMS][6]; /**< 当前TCP位姿，公共坐标系x/y/z[m]+RPY[deg]。 */
+    double   tool_pose[FR_ROBOT_MAX_ARMS][6]; /**< measured_tcp_pose的实测TCP别名，公共坐标系x/y/z[m]+RPY[deg]；不是命令位姿。 */
     int32_t  position_counts[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴原始位置计数。 */
     int32_t  velocity_counts[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴0x606C原始速度计数。 */
     int32_t  measured_torque_lsb[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴解环绕后的原始整数力矩LSB，不是Nm。 */
@@ -141,6 +158,14 @@ typedef struct {
     uint32_t written_target_position_counts[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴写入驱动的目标位置计数。 */
     double   command_velocity_deg_s[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴命令位置差分速度，deg/s。 */
     int      strategy_flags[FR_ROBOT_MAX_ARMS]; /**< 逐臂FR_FLAG_*策略标志位或。 */
+    double   command_tcp_pose[FR_ROBOT_MAX_ARMS][6]; /**< 同拍command_position_deg经FK得到的TCP，公共系x/y/z[m]+RPY[deg]；不是最终运动目标。 */
+    double   measured_tcp_pose[FR_ROBOT_MAX_ARMS][6]; /**< 同拍measured_position_deg经FK得到的TCP，公共系x/y/z[m]+RPY[deg]；含当前工具及用户TCP偏置。 */
+    int      command_tcp_valid[FR_ROBOT_MAX_ARMS]; /**< 命令TCP有效时1，否则0；无需autozero。 */
+    int      measured_tcp_valid[FR_ROBOT_MAX_ARMS]; /**< 实测关节反馈有效且实测TCP有限时1，否则0；无需autozero。 */
+    double   modeled_friction_torque_nm[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 外力估计链扣除的有符号摩擦项，Nm；CSP/CST含义相同，不是CST摩擦前馈；无效时0。 */
+    uint32_t gravity_hold_valid[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 重力保持模型发布有效时1，否则0；需有效autozero、使能与反馈。 */
+    uint32_t friction_valid[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 摩擦估计发布有效时1，否则0；检查后再使用modeled_friction_torque_nm。 */
+    uint32_t torque_drift_valid[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 标定零漂发布有效时1，否则0；需有效autozero、使能与反馈。 */
 } fr_state;
 
 /**
@@ -184,6 +209,7 @@ FR_API int fr_get_feedback(fr_robot* robot, fr_feedback* feedback);
 
 /**
  * @brief 一次复制同一控制拍的状态及反馈有效位。
+ * @note 状态版本3包含命令/实测TCP及估计链摩擦有效位；必须使用配套版本3头文件和库重新编译，不得混用旧结构。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[out] state 状态输出，非 NULL；提供一个 fr_state 对象，无须预填版本。
  * @param[in,out] feedback 反馈输出，非 NULL；调用前填写 struct_size=sizeof(*feedback)、struct_version=FR_FEEDBACK_VERSION；有效位只适用于相同 cycle。
@@ -191,11 +217,13 @@ FR_API int fr_get_feedback(fr_robot* robot, fr_feedback* feedback);
  */
 FR_API int fr_get_state_with_feedback(fr_robot* robot, fr_state* state, fr_feedback* feedback);
 
-#define FR_DRIVE_MODE_STATE_VERSION 1u
+#define FR_DRIVE_MODE_STATE_VERSION 2u
 typedef enum { FR_DRIVE_MODE_UNKNOWN=0, FR_DRIVE_MODE_CSP=8, FR_DRIVE_MODE_CST=10 } fr_drive_mode;
 typedef struct {
     uint32_t struct_size; /**< 调用前填 sizeof(本结构)。 */
-    uint32_t struct_version; /**< 调用前填1。 */
+    uint32_t struct_version; /**< 调用前填当前驱动模式状态版本。 */
+    uint64_t cycle; /**< 所属控制拍。 */
+    int current_strategy_mode[FR_ROBOT_MAX_ARMS]; /**< 同拍当前策略。 */
     int requested[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴请求驱动模式，8=CSP、10=CST、0未知。 */
     int display[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴PDO6061反馈模式，8=CSP、10=CST。 */
     int confirmed[FR_ROBOT_MAX_ARMS][FR_ROBOT_JOINTS]; /**< 逐轴有效反馈与请求模式一致时为1，否则0。 */
@@ -212,6 +240,26 @@ typedef struct {
  * @return FR_OK 表示输出成功；无数据返回 FR_ERR_NOT_READY，参数无效返回 FR_ERR_INVALID。
  */
 FR_API int fr_get_drive_mode_state(fr_robot* robot, fr_drive_mode_state* state);
+
+#ifndef FR_ARMANGLE_SNAPSHOT_DEFINED
+#define FR_ARMANGLE_SNAPSHOT_DEFINED
+typedef struct {
+    uint64_t cycle; /**< 所属控制拍。 */
+    int active, valid, trustworthy, range_ready, at_limit, reached;
+    int branch_valid, shoulder, wrist, mirror;
+    double phi_deg, phi_min_deg, phi_max_deg, target_phi_deg;
+    double max_velocity_deg_s, elbow_radius_m; /**< 无效标量为 NaN。 */
+} fr_armangle_snapshot;
+#endif
+
+/**
+ * @brief 读取一条臂的同拍臂角策略诊断；不计算新的臂角。
+ * @param[in] robot 运行中的实例，非 NULL。
+ * @param[in] arm 逻辑臂号，0 或 1。
+ * @param[out] snapshot 输出，非 NULL；无效标量为 NaN，分支须检查 branch_valid。
+ * @return FR_OK 成功；参数错误返回 INVALID；无快照返回 NOT_READY。
+ */
+FR_API int fr_get_armangle_snapshot(fr_robot* robot, int arm, fr_armangle_snapshot* snapshot);
 
 #define FR_FLAG_TCP_ESCAPING        1u
 #define FR_FLAG_TCP_TARGET_REJECTED 2u
@@ -365,6 +413,17 @@ FR_API int fr_clear_tcp(fr_robot* robot, int arm, uint64_t tag, fr_result* accep
 FR_API int fr_get_tcp(fr_robot* robot, int arm, fr_pose* offset);
 
 /**
+ * @brief 用运行实例的标定模型和当前 TCP 偏置计算正运动学，不发控制命令。
+ * @param[in] robot 运行中的 SDK 实例，非 NULL。
+ * @param[in] arm 逻辑臂号，0 或 1。
+ * @param[in] q_deg 七轴关节角，单位 deg，非 NULL，所有值必须有限。
+ * @param[out] pose 基座系 TCP 位姿，单位 m 和 RPY deg，非 NULL；仅成功时写入。
+ * @return FR_OK 成功；参数无效或结果非有限返回 INVALID；实例未运行或暂无 TCP 快照返回 NOT_READY。
+ */
+FR_API int fr_compute_fk(fr_robot* robot, int arm, const double q_deg[FR_ROBOT_JOINTS],
+    fr_pose* pose);
+
+/**
  * @brief 读取当前工具负载质量与质心；启动前读取配置值。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
@@ -394,6 +453,46 @@ FR_API int fr_autozero(fr_robot* robot, int arm, uint64_t tag, fr_result* accept
  * @note 模式切换忙时拒绝；该操作不是机械急停。
  */
 FR_API int fr_hold(fr_robot* robot, int arm, uint64_t tag, fr_result* accepted);
+
+typedef enum {
+    FR_MOTION_JOINT = 0, FR_MOTION_TCP, FR_MOTION_TOOL, FR_MOTION_ARM_ANGLE,
+    FR_MOTION_IMP_JOINT, FR_MOTION_IMP_TCP, FR_MOTION_IMP_TOOL,
+    FR_MOTION_TCP_NULL, FR_MOTION_TOOL_NULL
+} fr_motion_kind;
+
+typedef enum {
+    FR_MOTION_SPEED = 1u << 0, FR_MOTION_ACCEL = 1u << 1,
+    FR_MOTION_ROTATION_SPEED = 1u << 2, FR_MOTION_ROTATION_ACCEL = 1u << 3
+} fr_motion_field;
+
+typedef struct {
+    uint32_t present;    /**< 按位组合 fr_motion_field；未标记的字段不读取。 */
+    double speed;       /**< 有限正数；关节/臂角 deg/s，TCP/tool m/s。 */
+    double accel;       /**< 有限正数；关节 deg/s²，TCP/tool m/s²；臂角不支持。 */
+    double rotation_speed; /**< 有限正数，rad/s；仅 TCP/tool。 */
+    double rotation_accel; /**< 有限正数，rad/s²；仅 TCP/tool。 */
+} fr_motion_options;
+
+/**
+ * @brief 提交一次有限运动，未提供的运动参数在控制层受理时逐臂解析并锁存。
+ * @param[in] robot 有效控制实例句柄，非 NULL。
+ * @param[in] arm 配置逻辑臂号 0 或 1，不支持广播。
+ * @param[in] kind 运动类型，取 fr_motion_kind 的成员。
+ * @param[in] target 非 NULL；joint/imp_joint 为长度7的关节角[deg]，armangle 为长度1的臂角[deg]，
+ *            TCP 为长度3的绝对位置[m]，tool 为长度3的工具系位置增量[m]；所有分量有限。
+ * TCP_NULL / TOOL_NULL 分别与 TCP / TOOL 使用相同目标语义，并叠加手推零空间速度。
+ * @param[in] rpy_deg 长度3的有限 RPY[deg]；TCP / TCP_NULL 为绝对姿态，NULL 时保持受理时命令姿态；
+ *            tool / tool_null 为工具系姿态增量，NULL 表示零增量；joint/armangle 必须为 NULL。
+ * @param[in] options 可为 NULL（全部参数省略）；显式值必须有限且大于零。省略项使用该臂策略默认；
+ *            armangle 不限制加速度。运动分类和逐轴限制仍适用。
+ * @param[in] tag 请求关联号，0 合法，结果原样返回。
+ * @param[out] accepted 可为 NULL；非 NULL 时返回受理结果或具体拒绝原因。
+ * @return FR_OK 表示已受理，不表示启动或完成；负值为 fr_status 错误码。
+ */
+FR_API int fr_move_motion(fr_robot* robot, int arm, fr_motion_kind kind,
+                          const double* target, const double rpy_deg[3],
+                          const fr_motion_options* options, uint64_t tag,
+                          fr_result* accepted);
 
 /**
  * @brief 以 CSP 执行七轴同步关节运动；所有轴使用共同路径进度。
@@ -427,6 +526,44 @@ FR_API int fr_move_tcp(fr_robot* robot, int arm, const fr_pose* target,
                        double linear_speed_m_s, double rotation_speed_rad_s,
                        double linear_accel_m_s2, double rotation_accel_rad_s2,
                        uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 以 CSP 执行基座系绝对 TCP 平移，保持控制层受理时的命令 TCP 姿态。
+ * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
+ * @param[in] position_m 基座系绝对 TCP 位置，非 NULL、长度3，顺序 x/y/z，单位 m；全部有限，无默认值、无统一可达范围。
+ * @param[in] speed TCP 平移参考速度，单位 m/s，有限且 >0；必填，与 motion_limits.tcp_series.max_linear_velocity_m_s 取小。
+ * @param[in] rotation_speed 姿态参考角速度，单位 rad/s，有限且 >0；必填，无公共分类数值上限。
+ * @param[in] acceleration TCP 平移参考加速度，单位 m/s²，有限且 >0；必填，与 motion_limits.tcp_series.max_linear_acceleration_m_s2 取小。
+ * @param[in] rotation_acceleration 姿态参考角加速度，单位 rad/s²，有限且 >0；必填，无公共分类数值上限。
+ * @param[in] tag 请求关联号，范围 0..UINT64_MAX；0 合法，SDK 不分配唯一号。
+ * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 fr_result 对象，入口校验失败时不保证写入。
+ * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ */
+FR_API int fr_move_tcp_position(fr_robot* robot, int arm, const double position_m[3],
+                                double speed, double rotation_speed,
+                                double acceleration, double rotation_acceleration,
+                                uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 以 CST 关节空间阻抗执行基座系绝对 TCP 平移，保持控制层受理时的命令 TCP 姿态。
+ * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
+ * @param[in] position_m 基座系绝对 TCP 位置，非 NULL、长度3，顺序 x/y/z，单位 m；全部有限，无默认值、无统一可达范围。
+ * @param[in] speed TCP 平移参考速度，单位 m/s，有限且 >0；必填，与 motion_limits.tcp_series.max_linear_velocity_m_s 取小。
+ * @param[in] rotation_speed 姿态参考角速度，单位 rad/s，有限且 >0；必填，无公共分类数值上限。
+ * @param[in] acceleration TCP 平移参考加速度，单位 m/s²，有限且 >0；必填，与 motion_limits.tcp_series.max_linear_acceleration_m_s2 取小。
+ * @param[in] rotation_acceleration 姿态参考角加速度，单位 rad/s²，有限且 >0；必填，无公共分类数值上限。
+ * @param[in] tag 请求关联号，范围 0..UINT64_MAX；0 合法，SDK 不分配唯一号。
+ * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 fr_result 对象，入口校验失败时不保证写入。
+ * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ * @note CST 要求已使能、autozero 完成及各轴正值力矩/位置误差限额；同策略新目标连续接续。
+ */
+FR_API int fr_move_impedance_tcp_position(fr_robot* robot, int arm, const double position_m[3],
+                                          double speed, double rotation_speed,
+                                          double acceleration, double rotation_acceleration,
+                                          uint64_t tag, fr_result* accepted);
+
 /**
  * @brief 以 CSP 执行命令 TCP 坐标系中的相对位姿运动。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
@@ -726,41 +863,54 @@ FR_API int fr_move_arm_angle(fr_robot* robot, int arm, double phi_deg,
                              uint64_t tag, fr_result* accepted);
 
 /**
- * @brief 设置三维力估计吸引子的绝对位置目标，保持姿态。
+ * @brief 已移除的3D力源模式兼容入口；不执行任何策略。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
  * @param[in] position_m 绝对 TCP 位置数组，非 NULL、长度3，公共坐标系 x/y/z，单位 m；全部有限，无统一可达范围、无默认值。
  * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
  * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
- * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ * @return FR_ERR_REJECTED；仅保留链接兼容，不提供运行功能。
  */
 FR_API int fr_move_attractor3(fr_robot* robot, int arm,
                               const double position_m[3],
                               uint64_t tag, fr_result* accepted);
 /**
- * @brief 设置六维力估计吸引子的绝对位置目标，保持姿态。
+ * @brief 设置六维力估计吸引子的相对位置目标，保持姿态。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
- * @param[in] position_m 绝对 TCP 位置数组，非 NULL、长度3，公共坐标系 x/y/z，单位 m；全部有限，无统一可达范围、无默认值。
+ * @param[in] delta_position_m 局部位移数组，非NULL、长度3，命令TCP系x/y/z，单位m；全部有限，无固定可达范围或默认值；目标=受理时命令位置+命令姿态×位移。
  * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
  * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
  * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
  */
 FR_API int fr_move_attractor6(fr_robot* robot, int arm,
-                              const double position_m[3],
+                              const double delta_position_m[3],
                               uint64_t tag, fr_result* accepted);
 /**
  * @brief 设置六维吸引子位置目标，同时允许臂角零空间让位。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
- * @param[in] position_m 绝对 TCP 位置数组，非 NULL、长度3，公共坐标系 x/y/z，单位 m；全部有限，无统一可达范围、无默认值。
+ * @param[in] delta_position_m 局部位移数组，非NULL、长度3，命令TCP系x/y/z，单位m；全部有限，无固定可达范围或默认值；目标=受理时命令位置+命令姿态×位移。
  * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
  * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
  * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
  */
 FR_API int fr_move_attractor6null(fr_robot* robot, int arm,
-                                  const double position_m[3],
+                                  const double delta_position_m[3],
                                   uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 以接管时命令 TCP 的局部相对位移为目标，启动 TCP 优先的吸引子与臂角让位实验策略（CSP）。
+ * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
+ * @param[in] delta_position_m 局部位移数组，非NULL、长度3，命令TCP系x/y/z，单位m；全部有限，无固定可达范围或默认值；目标=受理时命令位置+命令姿态×位移。
+ * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
+ * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
+ * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ */
+FR_API int fr_move_attractor6null_exp(fr_robot* robot, int arm,
+                                      const double delta_position_m[3],
+                                      uint64_t tag, fr_result* accepted);
 
 /**
  * @name 策略启动参数
@@ -905,13 +1055,13 @@ FR_API int fr_start_drag(fr_robot* robot, int arm, const fr_drag_params* params,
 FR_API int fr_start_spring(fr_robot* robot, int arm, const fr_spring_params* params,
                            uint64_t tag, fr_result* accepted);
 /**
- * @brief 启动三维力估计笛卡尔导纳，保持姿态，使用 CSP。
+ * @brief 已移除的3D力源模式兼容入口；不执行任何策略。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
  * @param[in] params 本次启动的参数覆盖，可为 NULL（使用该策略当前默认值）；非 NULL 时仅 set_mask 指定字段生效，字段范围和单位见对应结构。
  * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
  * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
- * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ * @return FR_ERR_REJECTED；仅保留链接兼容，不提供运行功能。
  */
 FR_API int fr_start_cart3(fr_robot* robot, int arm, const fr_cart_params* params,
                           uint64_t tag, fr_result* accepted);
@@ -927,13 +1077,13 @@ FR_API int fr_start_cart3(fr_robot* robot, int arm, const fr_cart_params* params
 FR_API int fr_start_cart6(fr_robot* robot, int arm, const fr_cart_params* params,
                           uint64_t tag, fr_result* accepted);
 /**
- * @brief 以当前命令 TCP 位置为吸引目标启动三维吸引子。
+ * @brief 已移除的3D力源模式兼容入口；不执行任何策略。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
  * @param[in] params 本次启动的参数覆盖，可为 NULL（使用该策略当前默认值）；非 NULL 时仅 set_mask 指定字段生效，字段范围和单位见对应结构。
  * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
  * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
- * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ * @return FR_ERR_REJECTED；仅保留链接兼容，不提供运行功能。
  */
 FR_API int fr_start_attractor3(fr_robot* robot, int arm,
                                const fr_attractor_params* params,
@@ -973,6 +1123,19 @@ FR_API int fr_start_null(fr_robot* robot, int arm, const fr_null_params* params,
 FR_API int fr_start_cart6null(fr_robot* robot, int arm,
                               const fr_cart6null_params* params,
                               uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动 TCP 优先的 XYZ 导纳与臂角让位实验策略（CSP）。
+ * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
+ * @param[in] params 本次启动的参数覆盖，可为 NULL（使用该策略当前默认值）；非 NULL 时仅各掩码选中的字段生效，字段范围和单位见对应结构。
+ * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
+ * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
+ * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ */
+FR_API int fr_start_cart6null_exp(fr_robot* robot, int arm,
+                                  const fr_cart6null_params* params,
+                                  uint64_t tag, fr_result* accepted);
 /**
  * @brief 以当前命令位置为吸引目标，启动六维吸引子及零空间让位。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
@@ -985,6 +1148,19 @@ FR_API int fr_start_cart6null(fr_robot* robot, int arm,
 FR_API int fr_start_attractor6null(fr_robot* robot, int arm,
                                    const fr_attractor6null_params* params,
                                    uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 以接管时命令位置为吸引目标，启动 TCP 优先的吸引子与臂角让位实验策略（CSP）。
+ * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
+ * @param[in] params 本次启动的参数覆盖，可为 NULL（使用该策略当前默认值）；非 NULL 时仅各掩码选中的字段生效，字段范围和单位见对应结构。
+ * @param[in] tag 请求关联号，范围 0..UINT64_MAX，必须显式传入；0 合法，SDK 不分配唯一号。
+ * @param[out] accepted 受理结果输出，可为 NULL；非 NULL 时提供一个 result 对象；入口校验失败时不保证写入。
+ * @return FR_OK 表示请求已受理，不表示执行完成；负值为 fr_status 错误码。执行结果通过结果回调按 tag 返回。
+ */
+FR_API int fr_start_attractor6null_exp(fr_robot* robot, int arm,
+                                       const fr_attractor6null_params* params,
+                                       uint64_t tag, fr_result* accepted);
 
 /**
  * @brief 启动沿指定命令 TCP 轴方向的六维笛卡尔导纳。
@@ -1013,8 +1189,76 @@ FR_API int fr_start_attractor6_axis(fr_robot* robot, int arm, int axis,
                                     const fr_attractor_axis_params* params,
                                     uint64_t tag, fr_result* accepted);
 
+/* Shared wrench measurement ABI. Either public control header can be included independently. */
+#ifndef FR_WRENCH_TYPES_DEFINED
+#define FR_WRENCH_TYPES_DEFINED
+
+typedef enum {
+    FR_WRENCH_REFERENCE = 0, /**< 锁存当前有效帧为参考。 */
+    FR_WRENCH_READ = 1,      /**< 读取最新有效帧相对于参考的变化。 */
+    FR_WRENCH_START = 2,     /**< 启动有限次异步采样。 */
+    FR_WRENCH_STOP = 3,      /**< 停止采样并等待在途回调退出。 */
+    FR_WRENCH_CLEAR_REFERENCE = 4 /**< 清除本臂参考，不停止采样。 */
+} fr_wrench_operation;
+
+typedef struct {
+    uint64_t cycle;       /**< 控制拍号。 */
+    uint64_t timestamp_ns; /**< 同拍系统时钟 Unix 时间戳，ns；采样调度不依赖此时间戳。 */
+    int32_t torque_lsb[7]; /**< 解环绕后的驱动器原始力矩，LSB；仅供诊断，不参与六维换算。 */
+    double torque_nm[7];   /**< 同拍发布的滤波后实测关节力矩，Nm。 */
+    double wrench[6];      /**< 在 TCP 处、以基座坐标表示的 Fx/Fy/Fz/Mx/My/Mz，N/Nm。 */
+} fr_wrench_frame;
+
+typedef struct {
+    fr_wrench_frame reference;   /**< 参考帧。 */
+    fr_wrench_frame measurement; /**< 测量帧；REFERENCE 和 valid=0 时不提供。 */
+    double wrench[6];            /**< READ/采样的测量减参考，N/Nm。 */
+    int valid;                   /**< 1 表示本次参考或差值有效，0 表示仅状态/统计。 */
+    uint64_t sampled;            /**< 本次异步采样已交付的有效样本数。 */
+    uint64_t missed;             /**< 本次异步采样已错过或无效的采样机会数。 */
+    int active;                  /**< 1 表示采样中或样本通知，0 表示空闲/结束。 */
+} fr_wrench_result;
+
+/** 回调在非实时线程执行；result 只在调用期间有效。 */
+typedef void (*fr_wrench_callback)(const fr_wrench_result* result, void* user);
+
+typedef struct {
+    fr_wrench_operation operation;
+    uint64_t sample_count;      /**< START 必填，有效交付数，至少 1；其他操作忽略。 */
+    double sample_hz;           /**< START 必填，有限正数且不超过控制拍率，Hz；其他操作忽略。 */
+    fr_wrench_callback callback; /**< START 必填非 NULL；其他操作忽略。 */
+    void* user;                  /**< START 传给回调的自定义指针，可为 NULL。 */
+} fr_wrench_request;
+
+#endif /* FR_WRENCH_TYPES_DEFINED */
+
+/**
+ * @brief 保存或清除参考、读取滤波力矩换算的六维差值，或启停每臂独立的定次异步采样。
+ * @note 两帧分别使用各自的同拍实测关节角和 TCP 解算，输入为负的实测关节力矩；
+ * 使用现有滤波后实测力矩（含读侧已应用的零漂校正），不读取控制外力估计，
+ * 不另做重力、载荷或摩擦补偿，不要求使能/autozero。
+ * 未使能或滤波窗口为 0 时，现有滤波通道直通；不对实测关节角作滤波延迟对齐。
+ * START 按控制拍调度；无效反馈、发布缺帧或回调来不及接收均计 missed，不补交旧帧，
+ * 达到有效样本数后自动停止。每个样本 valid=1、active=1；另发结束通知 valid=0、active=0。
+ * STOP 幂等，取消未开始的回调并等待已在途回调返回，不额外发结束通知；
+ * 显式 STOP 或实例停止/销毁完成后不再调用该回调。同实例回调内不得调用本入口或生命周期入口。
+ * CLEAR_REFERENCE 幂等，不要求运行或有效反馈，不改变采样计数；
+ * 本臂正在采样或回调尚未返回时，REFERENCE 和 CLEAR_REFERENCE 返回 FR_ERR_BUSY，不改变参考。
+ * @param[in] robot 控制实例句柄，非 NULL，调用期间须保持有效。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1，不支持广播。
+ * @param[in] request 请求结构，非 NULL；字段和单位见 fr_wrench_request。
+ * @param[out] result 输出；REFERENCE/READ 必须非 NULL，其他操作可为 NULL，无需预填。
+ * CLEAR_REFERENCE 成功时仅返回状态/统计，参考帧清零，valid=0。
+ * @return FR_OK 表示成功（START 仅受理）；FR_ERR_INVALID 参数无效；
+ * FR_ERR_NOT_FOUND 读或启动时无参考；FR_ERR_NOT_READY 设置参考、读或启动时未运行或无有效反馈；
+ * FR_ERR_BUSY 正在采样、回调未退出或在同实例回调内调用；FR_ERR_HARDWARE 后台线程启动失败。
+ */
+FR_API fr_status fr_measure_wrench(fr_robot* robot, int arm,
+    const fr_wrench_request* request, fr_wrench_result* result);
+
 /**
  * @brief 复制最新控制状态；停止后仍可能返回最后一帧，不代表实时有效。
+ * @note 状态版本3包含命令/实测TCP及估计链摩擦有效位；必须使用配套版本3头文件和库重新编译，不得混用旧结构。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[out] state 状态输出，非 NULL；提供一个 fr_state 对象，无须预填版本。
  * @return FR_OK 表示输出成功；无数据返回 FR_ERR_NOT_READY，参数无效返回 FR_ERR_INVALID。
@@ -1023,6 +1267,8 @@ FR_API int fr_get_state(fr_robot* robot, fr_state* state);
 
 /**
  * @brief 复制最近若干状态，按时间升序排列；不消费历史，重复读取可重叠。
+ * @note 状态版本3包含命令/实测TCP及估计链摩擦有效位；必须使用配套版本3头文件和库重新编译，不得混用旧结构。
+ * @note 同拍状态由非实时线程发布；若发布队列溢出，历史完整性锁存失效，返回HARDWARE，不返回伪连续历史。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[out] buffer 状态输出数组，非 NULL，至少 max_count 个 state 对象。
  * @param[in] max_count 输出数组可容纳的状态帧数，整数 >0；返回帧数不超过此值，无默认值。
@@ -1035,6 +1281,7 @@ FR_API int fr_read_state_history(fr_robot* robot, fr_state* buffer,
 typedef void (*fr_state_callback)(const fr_state* state, void* user);
 /**
  * @brief 注册唯一状态订阅，按控制拍抽样；慢回调会丢弃旧帧。
+ * @note 状态版本3包含命令/实测TCP及估计链摩擦有效位；必须使用配套版本3头文件和库重新编译，不得混用旧结构。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] every_n_cycles 回调抽样间隔，整数 >=1，单位为控制拍，无默认值；500Hz 时10拍对应20ms。
  * @param[in] callback 状态回调函数，非 NULL；state 指针仅回调期间有效，回调不得阻塞。
@@ -1053,7 +1300,8 @@ FR_API int fr_subscribe_state(fr_robot* robot, int every_n_cycles,
 FR_API int fr_unsubscribe_state(fr_robot* robot);
 
 /**
- * @brief 修改策略运行期默认参数；校验通过后生效，不写入 JSON。
+ * @brief 修改运行期参数；校验通过后生效，不写入 JSON。
+ * @note servo/cst.max_lag_deg仅保留运行期兼容读写，当前不参与CST冻结且不从JSON加载；joint_index必须-1。旧位置/速度误差兼容字段不作关断门。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
  * @param[in] strategy 策略名，非 NULL 字符串，如 "joint"、"tcp"、"drag"、"servo"、"motion_limits"；必须与参数所属策略匹配。
@@ -1083,6 +1331,7 @@ FR_API int fr_set_payload(fr_robot* robot, int arm, double mass_kg,
                           fr_result* accepted);
 /**
  * @brief 读取策略当前默认参数，包含配置预设和运行期覆盖值。
+ * @note servo/cst.max_lag_deg返回本臂兼容值[deg]，不参与CST冻结；joint_index必须-1。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
  * @param[in] arm 配置逻辑臂号，取 0 或 1；不表示 EtherCAT 站号，不支持 -1 广播。
  * @param[in] strategy 策略名，非 NULL 字符串，如 "joint"、"tcp"、"drag"、"servo"、"motion_limits"；必须与参数所属策略匹配。
@@ -1093,6 +1342,21 @@ FR_API int fr_set_payload(fr_robot* robot, int arm, double mass_kg,
  */
 FR_API int fr_get_parameter(fr_robot* robot, int arm, const char* strategy,
                             const char* name, int joint_index, double* value);
+
+/**
+ * @brief 读取参数，并在运行层拒绝时回传具体原因。
+ * @param[in] robot 控制实例，非 NULL。
+ * @param[in] arm 逻辑臂号 0 或 1。
+ * @param[in] strategy 参数所属策略名，非 NULL。
+ * @param[in] name 参数名，非 NULL。
+ * @param[in] joint_index 关节索引 0..6，-1 表示标量或按 j1 读取逐轴值。
+ * @param[out] value 参数值，非 NULL，仅成功时有效。
+ * @param[out] reason 原因文本缓冲区；容量为 0 时可传 NULL。
+ * @param[in] reason_size 缓冲区字节数，包括末尾 NUL；0 表示不接收文本。
+ * @return FR_OK 成功；无值或被拒绝返回 NOT_FOUND；其他错误同 fr_get_parameter。
+ */
+FR_API int fr_get_parameter_detail(fr_robot* robot, int arm, const char* strategy,
+    const char* name, int joint_index, double* value, char* reason, size_t reason_size);
 
 /**
  * @brief 原子设置七轴 CST 比例及阻尼增益；任一值无效则整组拒绝。
@@ -1226,22 +1490,83 @@ FR_API int fr_csv_capture_get_path(fr_robot* robot, char* buffer, size_t buffer_
  */
 FR_API int fr_csv_capture_get_status(fr_robot* robot, fr_csv_capture_status* out);
 
+#define FR_JOINT_DIAGNOSTICS_VERSION 3u
 typedef struct {
     uint32_t struct_size; /**< 调用前填 sizeof(本结构)。 */
-    uint32_t struct_version; /**< 调用前填1。 */
+    uint32_t struct_version; /**< 调用前填FR_JOINT_DIAGNOSTICS_VERSION，当前3。 */
     uint64_t timestamp_ns; /**< 快照时间戳，ns。 */
     uint64_t cycle; /**< 摩擦估计所属控制拍号。 */
     double modeled_friction_torque_nm[FR_ROBOT_MAX_ARMS][7]; /**< 模型实际扣除的摩擦力矩估计，Nm；不是fc参数或传感器实测。 */
     uint32_t friction_valid[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴摩擦估计有效位，0/1；未使能/未autozero/输入失效时0。 */
     uint16_t drive_error_code[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴0x603F:00缓存值，16bit；0可表示成功读到无错误。 */
-    uint32_t drive_error_valid[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴错误码有效位，0未读取或读失败，1读取成功。 */
+    uint32_t drive_error_valid[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴错误码有效位，0未读取或最近读取失败，1读取成功；失败时数值0但不代表无错误。 */
     uint64_t drive_error_cycle[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴错误码采样拍；不保证等于快照cycle。 */
     int transaction_busy[FR_ROBOT_MAX_ARMS]; /**< 逐臂诊断事务忙标志，0/1。 */
+    double inverter_temperature_c[FR_ROBOT_MAX_ARMS][7]; /**< 0x2020:02逆变器温度，摄氏度；按固定原始UINT16值/256.0换算，保留小数；无效时0，须检查有效位。 */
+    double motor_temperature_c[FR_ROBOT_MAX_ARMS][7]; /**< 0x2020:03电机温度，摄氏度；按固定原始UINT16值/256.0换算，保留小数；无效时0，须检查有效位。 */
+    uint32_t inverter_temperature_valid[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴逆变器温度读取有效位0/1；读取失败或尚未读取为0。 */
+    uint32_t motor_temperature_valid[FR_ROBOT_MAX_ARMS][7]; /**< 逐轴电机温度读取有效位0/1；读取失败或尚未读取为0。 */
 } fr_joint_diagnostics;
+
+typedef enum {
+    FR_DIAGNOSTICS_DRIVE_ERRORS = 0,
+    FR_DIAGNOSTICS_TEMPERATURES = 1,
+    FR_DIAGNOSTICS_ALL = 2
+} fr_diagnostics_kind;
+
+typedef void (*fr_diagnostics_callback)(const fr_result* result,
+                                        const fr_joint_diagnostics* snapshot, void* user);
+
 /**
- * @brief 读取当拍摩擦估计及按需缓存的驱动错误码；不触发 SDO。
+ * @brief 请求一次诊断刷新，在 SDK 后台交付完成结果及其绑定快照。
+ * @param[in] robot 控制实例句柄，非 NULL。
+ * @param[in] arm 配置逻辑臂号，不支持广播。
+ * @param[in] kind 刷新范围，取 fr_diagnostics_kind 中的值。
+ * @param[in] tag 用户关联号，允许重复，原样进入结果。
+ * @param[in] callback 非 NULL；实际受理后调用一次，不重发到普通结果回调。失败或取消时快照为 NULL；两个回调参数指针仅在回调内有效。
+ * @param[in] user 透传给 callback；回调可能早于本函数返回，须保持有效直至回调结束或实例停止。
+ * @param[out] accepted 可为 NULL；接收提交回执，不是完成结果。
+ * @return FR_OK 表示受理，运行层拒绝时返回错误，FR_ERR_TIMEOUT 不保证未执行；随后实际受理仍会回调。
+ */
+FR_API int fr_request_diagnostics(fr_robot* robot, int arm, int kind, uint64_t tag,
+                                  fr_diagnostics_callback callback, void* user, fr_result* accepted);
+
+#ifndef FR_DRIVE_CLEAR_REPORT_DEFINED
+#define FR_DRIVE_CLEAR_REPORT_DEFINED
+/** @brief 一次清错请求的逐轴报告，数组按 j1..j7 排列。 */
+typedef struct {
+    uint64_t cycle; /**< 运行层产生终态的控制拍号。 */
+    uint16_t before_code[7]; /**< 前读的 0x603F:00 原始错误码，仅 before_valid 为 1 时有效。 */
+    uint16_t after_code[7]; /**< 复读的 0x603F:00 原始错误码，仅 after_valid 为 1 时有效。 */
+    uint32_t before_valid[7]; /**< 1 表示前读成功，0 表示未读或读取失败。 */
+    uint32_t after_valid[7]; /**< 1 表示复读成功，0 表示未读或读取失败。 */
+    uint32_t write_attempted[7]; /**< 1 表示尝试将清错控制字写入 PDO，0 表示未尝试。 */
+    uint32_t write_staged[7]; /**< 1 表示已写入待发送的 PDO，不表示驱动已清错。 */
+    uint32_t fault_after[7]; /**< 1 表示终态时驱动报告 Fault，仅 fault_after_valid 为 1 时有效。 */
+    uint32_t fault_after_valid[7]; /**< 1 表示终态时驱动状态可信，0 表示未知。 */
+} fr_drive_clear_report;
+#endif /* FR_DRIVE_CLEAR_REPORT_DEFINED */
+
+typedef void (*fr_drive_clear_callback)(const fr_result* result,
+                                        const fr_drive_clear_report* report, void* user);
+
+/**
+ * @brief 请求指定臂执行一次前读、清错及复读；仅在安全条件满足时受理，不重试、不自动使能。
+ * @param[in] robot 控制实例句柄，非 NULL。
+ * @param[in] arm 配置逻辑臂号，取 0 或 1；不支持广播，两臂需分别请求。
+ * @param[in] tag 用户关联号，允许 0 和重复值，原样进入结果。
+ * @param[in] callback 非 NULL；实际受理后由 SDK 后台调用一次，不重发到普通结果回调。失败或取消也可带部分报告；运行层退出且未交付终态时报告为 NULL。结果和报告指针仅在回调期间有效。
+ * @param[in] user 透传给 callback，可为 NULL；回调可能早于本函数返回，须保持有效直至回调结束或实例停止。
+ * @param[out] accepted 可为 NULL；接收受理回执，不是清错结果。入口校验失败时不保证写入。
+ * @return FR_OK 表示受理；负值为 fr_status 错误码。FR_ERR_TIMEOUT 不保证未执行，随后实际受理仍会回调。
+ */
+FR_API int fr_clear_drive_errors(fr_robot* robot, int arm, uint64_t tag,
+                                 fr_drive_clear_callback callback, void* user, fr_result* accepted);
+
+/**
+ * @brief 读取当拍摩擦估计与最近一次按需SDO诊断缓存；本函数不触发SDO。
  * @param[in] robot 控制实例句柄，非 NULL；由 create 返回，调用期间须保持有效。
- * @param[in,out] out 输出结构，非 NULL；调用前填 struct_size=sizeof(*out)、struct_version=1；通过 friction_valid 和 drive_error_valid 判断各轴数据是否有效。
+ * @param[in,out] out 输出结构，非 NULL；调用前填 struct_size=sizeof(*out)、struct_version=FR_JOINT_DIAGNOSTICS_VERSION；分别检查摩擦、错误码和两路温度的有效位；不兼容旧版诊断结构。
  * @return FR_OK 表示输出成功；无数据返回 FR_ERR_NOT_READY，参数无效返回 FR_ERR_INVALID。
  */
 FR_API int fr_get_joint_diagnostics(fr_robot* robot, fr_joint_diagnostics* out);
@@ -1256,6 +1581,215 @@ FR_API int fr_get_joint_diagnostics(fr_robot* robot, fr_joint_diagnostics* out);
  * @note 与模式切换邮箱互斥；disable 可取消。受理时清有效位，成功零码与未读取通过 valid 区分。
  */
 FR_API int fr_refresh_drive_errors(fr_robot* robot, int arm, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 异步按需读取指定臂七轴两路温度（2020:02/03）一次；不启用周期查询、不使能。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 逻辑臂号0或1，不是从站地址，不支持广播。
+ * @param[in] tag 请求关联号，0..UINT64_MAX；调用方负责关联结果。
+ * @param[out] accepted 受理结果，可NULL；不表示读取完成。
+ * @return FR_OK表示受理，参数非法或事务忙时返回负错误码；按tag回调报告完成/失败。
+ * @note getter只读缓存。切模优先，已发请求收尾后让路；单请求1秒，失败项无效但不下使能，disable/quit可取消。
+ */
+FR_API int fr_refresh_temperatures(fr_robot* robot, int arm, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 异步按需读取指定臂七轴两路温度及603F错误码一次；不启用周期查询、不使能。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 逻辑臂号0或1，不是从站地址，不支持广播。
+ * @param[in] tag 请求关联号，0..UINT64_MAX；调用方负责关联结果。
+ * @param[out] accepted 受理结果，可NULL；不表示读取完成。
+ * @return FR_OK表示受理，参数非法或事务忙时返回负错误码；按tag回调报告完成/失败。
+ * @note getter只读缓存。切模优先，已发请求收尾后让路；单请求1秒，失败项无效但不下使能，disable/quit可取消。
+ */
+FR_API int fr_refresh_joint_diagnostics(fr_robot* robot, int arm, uint64_t tag, fr_result* accepted);
+
+
+/**
+ * @brief 启动CST笛卡尔导纳。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_cart6(fr_robot* robot, int arm, const fr_cart_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动CST笛卡尔导纳及零空间让位。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_cart6null(fr_robot* robot, int arm, const fr_cart6null_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动沿指定TCP轴的CST导纳。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] axis 启动命令TCP轴，0=x、1=y、2=z，无默认值。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_cart6_axis(fr_robot* robot, int arm, int axis, const fr_cart_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 锁定当前命令位置启动CST吸引子。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_attractor6(fr_robot* robot, int arm, const fr_attractor_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动CST吸引子及零空间让位。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_attractor6null(fr_robot* robot, int arm, const fr_attractor6null_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动带局部轴偏移的CST吸引子。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] axis 启动命令TCP轴，0=x、1=y、2=z，无默认值。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_attractor6_axis(fr_robot* robot, int arm, int axis, const fr_attractor_axis_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动CST零空间让位。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] params 本次参数覆盖，可为NULL使用本策略独立默认；字段单位/范围见结构，set_mask为0不覆盖。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_start_imp_null(fr_robot* robot, int arm, const fr_null_params* params, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 提交CST吸引子局部相对目标。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] delta_position_m 局部位移xyz[m]，非NULL、长度3，有限，无默认值或固定可达范围；沿本次受理时命令TCP轴。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_move_imp_attractor6(fr_robot* robot, int arm, const double delta_position_m[3], uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 提交带零空间让位的CST吸引子局部相对目标。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in] arm 配置逻辑臂号0或1，不是站址。
+ * @param[in] delta_position_m 局部位移xyz[m]，非NULL、长度3，有限，无默认值或固定可达范围；沿本次受理时命令TCP轴。
+ * @param[in] tag 请求关联号，0..UINT64_MAX，必须显式传入。
+ * @param[out] accepted 受理结果，可为NULL；不表示执行完成。
+ * @return FR_OK表示受理；负值为状态错误码。
+ * @note 要求使能、autozero及CST限额；共用本臂CST控制律和kp/kd；max_lag不参与冻结。
+ */
+FR_API int fr_move_imp_attractor6null(fr_robot* robot, int arm, const double delta_position_m[3], uint64_t tag, fr_result* accepted);
+
+
+
+/** @brief 仅用于力位混合启动接口，选择逻辑臂0和1。 */
+#define FR_HYBRID_BOTH_ARMS (-1)
+
+/**
+ * @brief 启动CSP位置执行的力位混合控制：锁定工具XY速度运动，Z压力带导纳。
+ * @param[in] robot 有效控制句柄，非NULL。
+ * @param[in] arm 逻辑臂号0或1（不是站址），或FR_HYBRID_BOTH_ARMS选择双臂。
+ * @param[in] pressure_min_n 最小挤压力，N，有限且>=0；必须显式传入，且小于pressure_max_n。
+ * @param[in] pressure_max_n 最大允许挤压力，N，有限且>pressure_min_n；必须显式传入，无软件固定上限，不是硬过力急停值。
+ * @param[in] velocity_x_m_s 接管时锁定命令TCP的X向速度，m/s，有限，可正/负/0，无默认值；持续执行至停止。
+ * @param[in] velocity_y_m_s 同坐标系Y向速度，m/s，有限，可正/负/0，无默认值；XY速度为两者合成，不分别归一化。
+ * @param[in] xy_force_threshold_n 指向本次XY外力阈值，N，有限且>0；NULL使用各目标臂本策略当前默认值。仅XY外力幅值严格超过该值时检查对抗角。
+ * @param[in] opposition_angle_deg 指向本次对抗角阈值，deg，有限且90<值<180；NULL使用各目标臂本策略当前默认值。
+ * @param[in] tag 关联号，0..UINT64_MAX；双臂共用该号。
+ * @param[out] accepted 可为NULL；单臂指向1项，双臂指向按臂0、1排列的2项。输出受理/拒绝，不表示已启动或完成。
+ * @return 全部受理返回FR_OK；否则返回首个错误码；双臂逐臂结果见accepted。
+ * @note 沿工具+Z压入，挤压力P=-Fz；低于下界前进，高于上界退让，带内Z目标速度0；XY不因接触丢失暂停。
+ * @note gain默认0.005m/(s·N)，Z速度上限0.05m/s、加速度上限5m/s²、关节速度上限30deg/s，均为独立策略参数。
+ * @note 两个可选值可独立省略；显式覆盖只用于本次。arm可为FR_HYBRID_BOTH_ARMS：全部参数先解析校验，失败则均不提交；通过后逐臂提交，非原子且不回滚。
+ * @note XY合力未超过启动阈值时仅跳过夹角判断，不暂停XY运动或Z压力控制；XY指令速度为0时不判夹角。
+ * @note 要求使能及autozero；超对抗角冻结参考，解除后继续；不是碰撞安全保证。
+ */
+FR_API int fr_start_hybrid_force_position(fr_robot* robot, int arm, double pressure_min_n, double pressure_max_n, double velocity_x_m_s, double velocity_y_m_s, const double* xy_force_threshold_n, const double* opposition_angle_deg, uint64_t tag, fr_result* accepted);
+
+/**
+ * @brief 启动CST阻抗执行的力位混合控制：锁定工具XY速度运动，Z压力带导纳。
+ * @param[in] robot 有效控制句柄，非NULL。
+ * @param[in] arm 逻辑臂号0或1（不是站址），或FR_HYBRID_BOTH_ARMS选择双臂。
+ * @param[in] pressure_min_n 最小挤压力，N，有限且>=0；必须显式传入，且小于pressure_max_n。
+ * @param[in] pressure_max_n 最大允许挤压力，N，有限且>pressure_min_n；必须显式传入，无软件固定上限，不是硬过力急停值。
+ * @param[in] velocity_x_m_s 接管时锁定命令TCP的X向速度，m/s，有限，可正/负/0，无默认值；持续执行至停止。
+ * @param[in] velocity_y_m_s 同坐标系Y向速度，m/s，有限，可正/负/0，无默认值；XY速度为两者合成，不分别归一化。
+ * @param[in] xy_force_threshold_n 指向本次XY外力阈值，N，有限且>0；NULL使用各目标臂本策略当前默认值。仅XY外力幅值严格超过该值时检查对抗角。
+ * @param[in] opposition_angle_deg 指向本次对抗角阈值，deg，有限且90<值<180；NULL使用各目标臂本策略当前默认值。
+ * @param[in] tag 关联号，0..UINT64_MAX；双臂共用该号。
+ * @param[out] accepted 可为NULL；单臂指向1项，双臂指向按臂0、1排列的2项。输出受理/拒绝，不表示已启动或完成。
+ * @return 全部受理返回FR_OK；否则返回首个错误码；双臂逐臂结果见accepted。
+ * @note 沿工具+Z压入，挤压力P=-Fz；低于下界前进，高于上界退让，带内Z目标速度0；XY不因接触丢失暂停。
+ * @note gain默认0.005m/(s·N)，Z速度上限0.05m/s、加速度上限5m/s²、关节速度上限30deg/s，均为独立策略参数。
+ * @note 两个可选值可独立省略；显式覆盖只用于本次。arm可为FR_HYBRID_BOTH_ARMS：全部参数先解析校验，失败则均不提交；通过后逐臂提交，非原子且不回滚。
+ * @note XY合力未超过启动阈值时仅跳过夹角判断，不暂停XY运动或Z压力控制；XY指令速度为0时不判夹角。
+ * @note 要求使能及autozero；超对抗角冻结参考，解除后继续；不是碰撞安全保证。使用每臂关节阻抗kp/kd，CST不接入max_lag冻结。
+ */
+FR_API int fr_start_imp_hybrid_force_position(fr_robot* robot, int arm, double pressure_min_n, double pressure_max_n, double velocity_x_m_s, double velocity_y_m_s, const double* xy_force_threshold_n, const double* opposition_angle_deg, uint64_t tag, fr_result* accepted);
+
+
+
+#define FR_IMPEDANCE_STATE_VERSION 4u
+/** @brief CST阻抗执行层同拍快照；调用前填写size/version。 */
+typedef struct {
+    uint32_t struct_size; /**< sizeof(本结构)。 */
+    uint32_t struct_version; /**< FR_IMPEDANCE_STATE_VERSION，当前4；不兼容旧版结构。 */
+    uint64_t cycle; /**< 控制拍号。 */
+    int output_valid[2]; /**< 本拍完整CST力矩有效时1；CSP/未使能为0。 */
+    double spring_nm[2][7]; /**< 关节弹簧回复力矩，Nm，不含重力/阻尼/摩擦。 */
+    double damping_nm[2][7]; /**< 关节阻尼力矩，Nm。 */
+    double friction_nm[2][7]; /**< 驱动侧摩擦前馈，Nm；不是估计链扣除的摩擦反馈。 */
+    double gravity_nm[2][7]; /**< 当前实测构型动态重力前馈，Nm。 */
+    double target_torque_nm[2][7]; /**< 弹簧、阻尼、摩擦和重力合成的未限幅目标力矩，Nm。 */
+    double output_torque_nm[2][7]; /**< 最终限幅后的命令力矩，Nm，驱动编码前值；不是实测力矩。 */
+    uint32_t saturated[2][7]; /**< 逐轴最终限幅标志0/1。 */
+    double stiffness_matrix_nm_rad[2][7][7]; /**< 本拍完整关节刚度矩阵，Nm/rad；关节阻抗下为对角矩阵。 */
+    double damping_matrix_nm_s_rad[2][7][7]; /**< 本拍完整关节阻尼矩阵，Nm·s/rad；关节阻抗下为对角矩阵。 */
+} fr_impedance_state;
+
+/**
+ * @brief 查询本拍关节刚度/阻尼矩阵及各力矩分量，不触发总线读取。
+ * @param[in] robot 有效控制实例，非NULL。
+ * @param[in,out] state 输出结构，非NULL；预填struct_size=sizeof(*state)、struct_version=FR_IMPEDANCE_STATE_VERSION。
+ * @return FR_OK表示复制成功；未运行或无快照返回FR_ERR_NOT_READY，结构版本/指针无效返回FR_ERR_INVALID。
+ */
+FR_API int fr_get_impedance_state(fr_robot* robot, fr_impedance_state* state);
+
 #ifdef __cplusplus
 }
 #endif

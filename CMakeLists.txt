@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(forcerobot_customer_sdk VERSION 1.0.0 LANGUAGES CXX)
+project(forcerobot_customer_sdk VERSION 1.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -90,6 +90,7 @@ if(FRS_BUILD_EXAMPLES)
   frs_add_example(ex_hw_joint)
   frs_add_example(ex_hw_move_joint)
   frs_add_example(ex_hw_move_tcp)
+  frs_add_example(ex_hw_tcp_null)
   frs_add_example(ex_hw_path)
   frs_add_example(ex_hw_path_blend)
   frs_add_example(ex_hw_tcp_path)
@@ -120,5 +121,5 @@ install(FILES
   docs/QUICKSTART.txt
   docs/EXAMPLES_MAP.txt
   docs/API_EXAMPLES.txt
-  docs/RELEASE_NOTES_v1.0.txt
+  docs/RELEASE_NOTES_v1.0.1.txt
   DESTINATION share/doc/forcerobot)

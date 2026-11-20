@@ -293,8 +293,14 @@
           },
           {
             "index": "0x1602",
+            "sub": 4,
+            "value": "0x60FF0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
             "sub": 0,
-            "value": 3,
+            "value": 4,
             "bits": 16
           },
           {
@@ -384,7 +390,7 @@
           {
             "index": "0x200A",
             "sub": 0,
-            "value": 100,
+            "value": 8,
             "bits": 32
           },
           {
@@ -417,6 +423,11 @@
                     "index": "0x0000",
                     "sub": 0,
                     "bits": 16
+                  },
+                  {
+                    "index": "0x60FF",
+                    "sub": 0,
+                    "bits": 32
                   }
                 ]
               }
@@ -501,8 +512,14 @@
           },
           {
             "index": "0x1602",
+            "sub": 4,
+            "value": "0x60FF0020",
+            "bits": 32
+          },
+          {
+            "index": "0x1602",
             "sub": 0,
-            "value": 3,
+            "value": 4,
             "bits": 16
           },
           {
@@ -619,6 +636,11 @@
                     "index": "0x6071",
                     "sub": 0,
                     "bits": 16
+                  },
+                  {
+                    "index": "0x60FF",
+                    "sub": 0,
+                    "bits": 32
                   }
                 ]
               }
@@ -679,6 +701,9 @@
     {
       "joints": [
         {
+          "bus_position": 1
+        },
+        {
           "bus_position": 2
         },
         {
@@ -695,9 +720,6 @@
         },
         {
           "bus_position": 7
-        },
-        {
-          "bus_position": 8
         }
       ],
       "conversion": {
@@ -752,12 +774,13 @@
             "torque_sign": 1
           }
         ]
-      },
-      "physical_arm_id": "original-arm-0",
-      "parameter_source_arm_index": 0
+      }
     },
     {
       "joints": [
+        {
+          "bus_position": 8
+        },
         {
           "bus_position": 9
         },
@@ -775,9 +798,6 @@
         },
         {
           "bus_position": 14
-        },
-        {
-          "bus_position": 15
         }
       ],
       "conversion": {
@@ -832,14 +852,11 @@
             "torque_sign": 1
           }
         ]
-      },
-      "physical_arm_id": "original-arm-1",
-      "parameter_source_arm_index": 1
+      }
     }
   ],
   "cycle_hz": 500,
   "torque_filter_ms": 140,
   "torque_filter_type": "ellip",
-  "variant": "dual",
-  "config_set_id": "dual-shared-single-20261112"
+  "variant": "dual"
 }

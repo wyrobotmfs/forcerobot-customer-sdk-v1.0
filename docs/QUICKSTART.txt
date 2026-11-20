@@ -1,5 +1,5 @@
-ForceRobot Customer SDK v1.0 — 快速开始
-=====================================
+ForceRobot Customer SDK v1.0.1 — 快速开始
+=======================================
 
 1. 环境
 -------
@@ -61,11 +61,11 @@ create 失败：
 6. 单实例锁
 -----------
   /tmp/force_robot_sdk.lock
-  与 runtime_dual、gravity_identify、本 SDK 应用互斥。
+  与 runtime_dual、mass_identify、本 SDK 应用互斥。
 
 
 7. 更多
 -------
   能力边界：docs/CAPABILITY.txt
   示例对照：docs/EXAMPLES_MAP.txt / docs/API_EXAMPLES.txt
-  发布说明：docs/RELEASE_NOTES_v1.0.txt
+  发布说明：docs/RELEASE_NOTES_v1.0.1.txt

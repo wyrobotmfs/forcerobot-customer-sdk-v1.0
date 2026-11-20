@@ -12,6 +12,8 @@ struct frs_robot {
     void* user_result_ctx = nullptr;
     frs_state_callback user_state_cb = nullptr;
     void* user_state_ctx = nullptr;
+    frs_drive_clear_callback user_clear_cb = nullptr;
+    void* user_clear_ctx = nullptr;
 };
 
 struct frs_kin {
@@ -108,6 +110,42 @@ void on_state(const fr_state* state, void* user) {
     frs_state out{};
     fill_state(*state, nullptr, &out);
     self->user_state_cb(&out, self->user_state_ctx);
+}
+
+void fill_motion_options(double linear_speed_m_s, double rotation_speed_rad_s,
+                         double linear_accel_m_s2, double rotation_accel_rad_s2,
+                         fr_motion_options* out) {
+    out->present = FR_MOTION_SPEED | FR_MOTION_ACCEL | FR_MOTION_ROTATION_SPEED |
+                   FR_MOTION_ROTATION_ACCEL;
+    out->speed = linear_speed_m_s;
+    out->accel = linear_accel_m_s2;
+    out->rotation_speed = rotation_speed_rad_s;
+    out->rotation_accel = rotation_accel_rad_s2;
+}
+
+void on_drive_clear(const fr_result* result, const fr_drive_clear_report* report,
+                    void* user) {
+    auto* self = static_cast<frs_robot*>(user);
+    if (!self || !self->user_clear_cb) return;
+    frs_result out{};
+    if (result) copy_result(result, &out);
+    frs_drive_clear_report rep{};
+    const frs_drive_clear_report* rep_ptr = nullptr;
+    if (report) {
+        rep.cycle = report->cycle;
+        for (int j = 0; j < FRS_JOINTS; ++j) {
+            rep.before_code[j] = report->before_code[j];
+            rep.after_code[j] = report->after_code[j];
+            rep.before_valid[j] = report->before_valid[j];
+            rep.after_valid[j] = report->after_valid[j];
+            rep.write_attempted[j] = report->write_attempted[j];
+            rep.write_staged[j] = report->write_staged[j];
+            rep.fault_after[j] = report->fault_after[j];
+            rep.fault_after_valid[j] = report->fault_after_valid[j];
+        }
+        rep_ptr = &rep;
+    }
+    self->user_clear_cb(result ? &out : nullptr, rep_ptr, self->user_clear_ctx);
 }
 
 }  // namespace
@@ -282,6 +320,39 @@ int frs_move_tool(frs_robot* robot, int arm,
                           linear_speed_m_s, rotation_speed_rad_s,
                           linear_accel_m_s2, rotation_accel_rad_s2,
                           tag, accepted ? &acc : nullptr);
+    if (accepted) copy_result(&acc, accepted);
+    return map_status(rc);
+}
+
+int frs_move_tcp_null(frs_robot* robot, int arm, const frs_pose* target,
+                      double linear_speed_m_s, double rotation_speed_rad_s,
+                      double linear_accel_m_s2, double rotation_accel_rad_s2,
+                      uint64_t tag, frs_result* accepted) {
+    if (!robot || !robot->raw || !target) return FRS_ERR_INVALID;
+    fr_motion_options opt{};
+    fill_motion_options(linear_speed_m_s, rotation_speed_rad_s, linear_accel_m_s2,
+                        rotation_accel_rad_s2, &opt);
+    double xyz[3] = {target->position_m[0], target->position_m[1], target->position_m[2]};
+    double rpy[3] = {target->rpy_deg[0], target->rpy_deg[1], target->rpy_deg[2]};
+    fr_result acc{};
+    int rc = fr_move_motion(robot->raw, arm, FR_MOTION_TCP_NULL, xyz, rpy, &opt, tag,
+                            accepted ? &acc : nullptr);
+    if (accepted) copy_result(&acc, accepted);
+    return map_status(rc);
+}
+
+int frs_move_tool_null(frs_robot* robot, int arm,
+                       const double delta_xyz_m[3], const double delta_rpy_deg[3],
+                       double linear_speed_m_s, double rotation_speed_rad_s,
+                       double linear_accel_m_s2, double rotation_accel_rad_s2,
+                       uint64_t tag, frs_result* accepted) {
+    if (!robot || !robot->raw || !delta_xyz_m) return FRS_ERR_INVALID;
+    fr_motion_options opt{};
+    fill_motion_options(linear_speed_m_s, rotation_speed_rad_s, linear_accel_m_s2,
+                        rotation_accel_rad_s2, &opt);
+    fr_result acc{};
+    int rc = fr_move_motion(robot->raw, arm, FR_MOTION_TOOL_NULL, delta_xyz_m,
+                            delta_rpy_deg, &opt, tag, accepted ? &acc : nullptr);
     if (accepted) copy_result(&acc, accepted);
     return map_status(rc);
 }
@@ -490,7 +561,7 @@ int frs_get_drive_error_codes(frs_robot* robot, int arm,
     if (arm < 0 || arm >= FRS_ARMS) return FRS_ERR_INVALID;
     fr_joint_diagnostics d{};
     d.struct_size = sizeof(d);
-    d.struct_version = 1u;
+    d.struct_version = FR_JOINT_DIAGNOSTICS_VERSION;
     int rc = fr_get_joint_diagnostics(robot->raw, &d);
     if (rc != FR_OK) return map_status(rc);
     for (int j = 0; j < FRS_JOINTS; ++j) {
@@ -498,6 +569,19 @@ int frs_get_drive_error_codes(frs_robot* robot, int arm,
         out_valid[j] = d.drive_error_valid[arm][j] ? 1 : 0;
     }
     return FRS_OK;
+}
+
+int frs_clear_drive_errors(frs_robot* robot, int arm, uint64_t tag,
+                           frs_drive_clear_callback cb, void* user,
+                           frs_result* accepted) {
+    if (!robot || !robot->raw || !cb) return FRS_ERR_INVALID;
+    robot->user_clear_cb = cb;
+    robot->user_clear_ctx = user;
+    fr_result acc{};
+    int rc = fr_clear_drive_errors(robot->raw, arm, tag, on_drive_clear, robot,
+                                   accepted ? &acc : nullptr);
+    if (accepted) copy_result(&acc, accepted);
+    return map_status(rc);
 }
 
 int frs_csv_start(frs_robot* robot, const char* path_or_null) {

@@ -36,7 +36,7 @@ extern "C" {
 #  define FRS_API __attribute__((visibility("default")))
 #endif
 
-#define FRS_VERSION_STR "1.0.0"
+#define FRS_VERSION_STR "1.0.1"
 #define FRS_ARMS 2
 #define FRS_JOINTS 7
 #define FRS_PATH_MAX 32
@@ -175,6 +175,25 @@ FRS_API int frs_move_tool(frs_robot* robot, int arm,
                           double linear_accel_m_s2, double rotation_accel_rad_s2,
                           uint64_t tag, frs_result* accepted);
 
+/**
+ * CSP 基座系绝对 TCP 运动，并叠加手推摆肘（tcp_null）。
+ * 参数语义与 frs_move_tcp 相同；未标定外力时仍可做位置运动，只不叠加摆肘。
+ */
+FRS_API int frs_move_tcp_null(frs_robot* robot, int arm, const frs_pose* target,
+                              double linear_speed_m_s, double rotation_speed_rad_s,
+                              double linear_accel_m_s2, double rotation_accel_rad_s2,
+                              uint64_t tag, frs_result* accepted);
+
+/**
+ * CSP 工具系相对运动，并叠加手推摆肘（tool_null）。
+ * 参数语义与 frs_move_tool 相同。
+ */
+FRS_API int frs_move_tool_null(frs_robot* robot, int arm,
+                               const double delta_xyz_m[3], const double delta_rpy_deg[3],
+                               double linear_speed_m_s, double rotation_speed_rad_s,
+                               double linear_accel_m_s2, double rotation_accel_rad_s2,
+                               uint64_t tag, frs_result* accepted);
+
 /* ======================== 多点路径 ======================== */
 
 /** 停顿式多点（关节） */
@@ -242,6 +261,32 @@ FRS_API int frs_refresh_drive_errors(frs_robot* robot, int arm,
 /** 读缓存的 603F 错误码；先 refresh。out_codes[7]，out_valid[7] */
 FRS_API int frs_get_drive_error_codes(frs_robot* robot, int arm,
                                       uint16_t out_codes[7], int out_valid[7]);
+
+/** 一次清错请求的逐轴报告（j1..j7） */
+typedef struct {
+    uint64_t cycle;
+    uint16_t before_code[7];
+    uint16_t after_code[7];
+    uint32_t before_valid[7];
+    uint32_t after_valid[7];
+    uint32_t write_attempted[7];
+    uint32_t write_staged[7];
+    uint32_t fault_after[7];
+    uint32_t fault_after_valid[7];
+} frs_drive_clear_report;
+
+typedef void (*frs_drive_clear_callback)(const frs_result* result,
+                                         const frs_drive_clear_report* report,
+                                         void* user);
+
+/**
+ * 请求清错（仅目标臂已可信下使能且无冲突事务时受理）。
+ * 结果走专用 callback，不进入普通 result_callback；report 指针仅回调期间有效。
+ * 装入 PDO 不等于驱动已清；不能替代硬件急停。
+ */
+FRS_API int frs_clear_drive_errors(frs_robot* robot, int arm, uint64_t tag,
+                                   frs_drive_clear_callback cb, void* user,
+                                   frs_result* accepted);
 
 FRS_API int frs_csv_start(frs_robot* robot, const char* path_or_null);
 FRS_API int frs_csv_stop(frs_robot* robot);

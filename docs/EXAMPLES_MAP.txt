@@ -12,6 +12,7 @@
   ex_hw_joint           关节相对点动
   ex_hw_move_joint      关节绝对点到点
   ex_hw_move_tcp        TCP 点到点（可加 dx dy dz，米）
+  ex_hw_tcp_null        TCP+手推摆肘（tcp_null）
   ex_hw_path            停顿式多点(joint)
   ex_hw_path_blend      连续过渡多点(joint)
   ex_hw_tcp_path        停顿式多点(tcp)
@@ -20,7 +21,7 @@
   ex_hw_tcp_tool        TCP/负载/move_tool
   ex_hw_force           autozero/drag/spring/阻抗 joint+tcp
   ex_hw_subscribe_csv   订阅+CSV
-  ex_hw_errors          驱动错误码（只读，无清错）
+  ex_hw_errors          驱动错误码刷新/读取（清错见 frs_clear_drive_errors）
   ex_hw_both            双臂近似同动
 
 安全：运动类示例均需终端输入 y 确认；注意 j4 软限位 ≥0°。

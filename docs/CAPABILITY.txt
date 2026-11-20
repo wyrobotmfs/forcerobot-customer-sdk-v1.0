@@ -1,4 +1,4 @@
-ForceRobot Customer SDK v1.0 — 能力边界（对外承诺）
+ForceRobot Customer SDK v1.0.1
 ================================================
 
 本包仅封装「当前底层二进制已具备、可稳定对外」的能力。
@@ -12,12 +12,13 @@ ForceRobot Customer SDK v1.0 — 能力边界（对外承诺）
   - 使能/下使能/hold/autozero
   - TCP 设置/清除/查询；payload 设置/查询
   - CSP：move_joint / move_tcp / move_tool
+  - CSP+摆肘：move_tcp_null / move_tool_null（1440）
   - 多点：停顿 path、连续 blend（joint/tcp）
   - 流式：joint/tcp stream
   - CST：drag / spring / impedance_joint / impedance_tcp
   - CST 增益读写
   - 状态读取、状态订阅、结果回调（tag）
-  - 驱动错误码刷新与读取（不清错）
+  - 驱动错误码刷新与读取；清错 frs_clear_drive_errors
   - CSV 采集 start/stop/get_path
 
 运动学（离线，不连总线）：
@@ -28,7 +29,7 @@ ForceRobot Customer SDK v1.0 — 能力边界（对外承诺）
 
 工具：
   - tools/runtime_dual（控制台联调）
-  - tools/gravity_identify（臂重力 152 点辨识，写 mass.json）
+  - tools/mass_identify（臂重力 152 点辨识，写 mass.json）
 
 
 二、关键语义
@@ -42,12 +43,13 @@ ForceRobot Customer SDK v1.0 — 能力边界（对外承诺）
   7. EtherCAT 主站 SOEM 1.4 为 GPLv2，再分发需满足许可义务
   8. 关节软限位以 config/parameter.json 为准（本包 j4 下限常为 0°）
   9. 关节 path_blend 折返时过渡加速度约需 ≥ V²/r，否则整表拒绝
-
+ 10. hold/disable/clear_drive_errors 不能替代硬件急停
 
 三、与底层库版本
 ----------------
   封装基于：
     vendor/lib/libforce_robot.so
     vendor/lib/libforce_robot_kinematics.so
-  配置集：dual-shared-single-20261112（config/）
-  发布说明：docs/RELEASE_NOTES_v1.0.txt
+  底层交付：forcerobot-linux-aarch64-20261120-1440-dual-tcp-null
+  配置集：随 1440 包 config/（含 tcp_null / tool_null 策略）
+  发布说明：docs/RELEASE_NOTES_v1.0.1.txt

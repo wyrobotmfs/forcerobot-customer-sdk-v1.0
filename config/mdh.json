@@ -93,8 +93,6 @@
           0.0
         ]
       },
-      "physical_arm_id": "original-arm-0",
-      "parameter_source_arm_index": 0,
       "tcp": {
         "rotation": [
           [
@@ -213,8 +211,6 @@
           0.0
         ]
       },
-      "physical_arm_id": "original-arm-1",
-      "parameter_source_arm_index": 1,
       "tcp": {
         "rotation": [
           [
@@ -241,6 +237,5 @@
       }
     }
   ],
-  "variant": "dual",
-  "config_set_id": "dual-shared-single-20261112"
+  "variant": "dual"
 }
